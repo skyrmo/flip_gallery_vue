@@ -3,8 +3,8 @@ import { ref, computed } from "vue";
 
 export const useArticleStore = defineStore("article", () => {
     // State
-    const articles = ref([]);
-    // const selectedArticleId = ref(null);
+    const articles: any = ref([]);
+    const selectedArticleId = ref(null);
     // const isTransitioning = ref(false);
     // const initialPosition = ref(null);
 
@@ -41,12 +41,12 @@ export const useArticleStore = defineStore("article", () => {
         // Add more sample articles as needed
     ];
 
-    // // Getters
-    // const selectedArticle = computed(() =>
-    //     articles.value.find(
-    //         (article) => article.id === selectedArticleId.value,
-    //     ),
-    // );
+    // Getters
+    const selectedArticle = computed(() =>
+        articles.value.find(
+            (article) => article.id === selectedArticleId.value,
+        ),
+    );
 
     // Actions
     function fetchArticles() {
@@ -54,31 +54,31 @@ export const useArticleStore = defineStore("article", () => {
         articles.value = sampleArticles;
     }
 
-    // function selectArticle(id, position = null) {
-    //     // Store the initial position for the FLIP animation
-    //     initialPosition.value = position;
-    //     isTransitioning.value = true;
-    //     selectedArticleId.value = id;
-    // }
+    function selectArticle(id: any, position = null) {
+        // Store the initial position for the FLIP animation
+        // initialPosition.value = position;
+        // isTransitioning.value = true;
+        selectedArticleId.value = id;
+    }
 
-    // function closeArticle() {
-    //     isTransitioning.value = true;
-    //     selectedArticleId.value = null;
-    //     // Reset after animation completes
-    //     setTimeout(() => {
-    //         isTransitioning.value = false;
-    //         initialPosition.value = null;
-    //     }, 500); // Match this with your animation duration
-    // }
+    function closeArticle() {
+        // isTransitioning.value = true;
+        selectedArticleId.value = null;
+        // Reset after animation completes
+        // setTimeout(() => {
+        //     isTransitioning.value = false;
+        //     initialPosition.value = null;
+        // }, 500); // Match this with your animation duration
+    }
 
     return {
         articles,
-        // selectedArticleId,
-        // selectedArticle,
+        selectedArticleId,
+        selectedArticle,
         // isTransitioning,
         // initialPosition,
         fetchArticles,
-        // selectArticle,
-        // closeArticle,
+        selectArticle,
+        closeArticle,
     };
 });

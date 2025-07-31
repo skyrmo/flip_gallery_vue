@@ -9,7 +9,6 @@
         </div>
         <div class="article-content">
             <h2 class="article-title">{{ article.title }}</h2>
-            <p class="article-excerpt">{{ article.excerpt }}</p>
         </div>
     </div>
 </template>
@@ -24,7 +23,7 @@ defineProps({
     },
 });
 
-// defineEmits(["click"]);
+defineEmits(["click"]);
 </script>
 
 <style scoped>
@@ -67,10 +66,5 @@ defineProps({
 .article-title {
     margin-top: 0;
     font-size: 1.2rem;
-}
-
-.article-excerpt {
-    color: #666;
-    font-size: 0.9rem;
 }
 </style>

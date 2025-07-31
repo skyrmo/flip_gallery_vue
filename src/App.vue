@@ -5,8 +5,8 @@
         </header>
 
         <main>
-            <ArticleGrid />
-            <!-- <ArticleView /> -->
+            <ArticleGrid v-if="!articleStore.selectedArticleId" />
+            <ArticleView v-else />
         </main>
     </div>
 </template>
@@ -14,9 +14,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import ArticleGrid from "./components/ArticleGrid.vue";
-// import ArticleView from "./components/ArticleView.vue";
+import ArticleView from "./components/ArticleView.vue";
 import { useArticleStore } from "./composables/useArticles";
-
+//
 const articleStore = useArticleStore();
 
 onMounted(() => {

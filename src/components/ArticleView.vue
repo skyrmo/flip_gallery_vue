@@ -1,20 +1,13 @@
 <template>
-    <div
-        class="article-view"
-        :class="{ 'is-animating': isAnimating }"
-        ref="articleViewRef"
-    >
-        <div
-            class="article-image-container"
-            :style="backgroundImageStyle"
-            ref="imageContainerRef"
-        >
-            <button class="close-button" @click="closeArticle">
-                <span>&times;</span>
-            </button>
+    <div class="article-view" ref="articleViewRef">
+        <div class="article-image-container" ref="imageContainerRef">
+            <img :src="article.image" alt="Article Image" />
         </div>
 
         <div class="article-content" ref="contentRef">
+            <button class="close-button" @click="closeArticle">
+                <span>&times;</span>
+            </button>
             <h1 class="article-title">{{ article.title }}</h1>
             <div class="article-body">
                 {{ article.content }}
@@ -29,73 +22,69 @@ import { useArticleStore } from "../composables/useArticles";
 
 const articleStore = useArticleStore();
 const article = computed(() => articleStore.selectedArticle);
-const isAnimating = ref(true);
+
+// console.log(article.value);
+// const isAnimating = ref(true);
 
 // Refs for DOM elements
-const articleViewRef = ref(null);
-const imageContainerRef = ref(null);
-const contentRef = ref(null);
-
-// Computed style for background image
-const backgroundImageStyle = computed(() => ({
-    backgroundImage: `url(${article.value.image})`,
-}));
+// const articleViewRef = ref(null);
+// const imageContainerRef = ref(null);
+// const contentRef = ref(null);
 
 // FLIP Animation implementation
 onMounted(() => {
     if (!articleStore.initialPosition) return;
 
-    const initialPos = articleStore.initialPosition;
-    const imageContainer = imageContainerRef.value;
-    const content = contentRef.value;
+    // const initialPos = articleStore.initialPosition;
+    // const imageContainer = imageContainerRef.value;
+    // const content = contentRef.value;
 
-    // Set initial transform for the image container (FIRST)
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
+    // // Set initial transform for the image container (FIRST)
+    // const viewportHeight = window.innerHeight;
+    // const viewportWidth = window.innerWidth;
 
-    // Calculate scale factors
-    const scaleX = initialPos.width / viewportWidth;
-    const scaleY = initialPos.imageHeight / viewportHeight;
+    // // Calculate scale factors
+    // const scaleX = initialPos.width / viewportWidth;
+    // const scaleY = initialPos.imageHeight / viewportHeight;
 
-    // Calculate position differences
-    const translateX = initialPos.left;
-    const translateY = initialPos.top;
+    // // Calculate position differences
+    // const translateX = initialPos.left;
+    // const translateY = initialPos.top;
 
-    // Apply the initial transform (INVERT)
-    imageContainer.style.transform = `
-    translate(${translateX}px, ${translateY}px)
-    scale(${scaleX}, ${scaleY})
-  `;
+    // // Apply the initial transform (INVERT)
+    // imageContainer.style.transform = `
+    // translate(${translateX}px, ${translateY}px)
+    // scale(${scaleX}, ${scaleY})
+    // `;
 
-    // Hide content initially
-    content.style.opacity = "0";
+    // // Hide content initially
+    // content.style.opacity = "0";
 
-    // Force reflow
-    imageContainer.offsetHeight;
+    // // Force reflow
+    // imageContainer.offsetHeight;
 
-    // Play the animation (PLAY)
-    imageContainer.style.transition =
-        "transform 0.5s cubic-bezier(0.2, 0, 0.2, 1)";
-    imageContainer.style.transform = "translate(0, 0) scale(1, 1)";
+    // // Play the animation (PLAY)
+    // imageContainer.style.transition =
+    //     "transform 0.5s cubic-bezier(0.2, 0, 0.2, 1)";
+    // imageContainer.style.transform = "translate(0, 0) scale(1, 1)";
 
-    // Fade in content
-    setTimeout(() => {
-        content.style.transition = "opacity 0.3s ease";
-        content.style.opacity = "1";
-        isAnimating.value = false;
-    }, 300);
+    // // Fade in content
+    // setTimeout(() => {
+    //     content.style.transition = "opacity 0.3s ease";
+    //     content.style.opacity = "1";
+    //     isAnimating.value = false;
+    // }, 300);
 });
 
-// Clean up
-onBeforeUnmount(() => {
-    // Reset animation states
-    isAnimating.value = false;
-});
+// // Clean up
+// onBeforeUnmount(() => {
+//     // Reset animation states
+//     // isAnimating.value = false;
+// });
 
 // Close article and animate back
 function closeArticle() {
-    // We could implement reverse FLIP animation here
-    // For simplicity, we'll just close the article
+    console.log("Close me!");
     articleStore.closeArticle();
 }
 </script>

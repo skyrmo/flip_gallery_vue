@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "title": "Exploring Vue 3 Features",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "image": "./1.jpg"
+    },
+    {
+        "id": 2,
+        "title": "Mastering CSS Grid Layouts",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "image": "./2.jpg"
+    },
+    {
+        "id": 3,
+        "title": "Why use Vue over React",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "image": "./3.jpg"
+    },
+    {
+        "id": 4,
+        "title": "Master the sub-grid in CSS",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "image": "./4.jpg"
+    }
+]

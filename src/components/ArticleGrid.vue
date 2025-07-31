@@ -16,24 +16,27 @@ import { useArticleStore } from "../composables/useArticles";
 
 const articleStore = useArticleStore();
 
-// // Handle click on article card
-// function handleArticleClick(article, event) {
-//     // Get the bounding rectangle of the clicked element for FLIP animation
-//     const cardElement = event.currentTarget;
-//     const rect = cardElement.getBoundingClientRect();
+// Handle click on article card
+function handleArticleClick(article, event) {
+    // Get the bounding rectangle of the clicked element for FLIP animation
+    console.log(event.currentTarget);
+    const cardElement = event.currentTarget;
+    const rect = cardElement.getBoundingClientRect();
 
-//     // Store initial position for animation
-//     const initialPosition = {
-//         top: rect.top,
-//         left: rect.left,
-//         width: rect.width,
-//         height: rect.height,
-//         imageHeight: cardElement.querySelector(".article-image").offsetHeight,
-//     };
+    // Store initial position for animation
+    const initialPosition = {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        imageHeight: cardElement.querySelector(".article-image").offsetHeight,
+    };
 
-//     // Select the article in the store, passing the initial position
-//     articleStore.selectArticle(article.id, initialPosition);
-// }
+    // Select the article in the store, passing the initial position
+    console.log(articleStore.selectedArticleId);
+    articleStore.selectArticle(article.id, initialPosition);
+    console.log(articleStore.selectedArticleId);
+}
 </script>
 
 <style scoped>
