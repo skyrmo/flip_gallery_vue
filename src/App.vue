@@ -6,7 +6,7 @@
 
         <main>
             <ArticleGrid v-if="!articleStore.selectedArticleId" />
-            <ArticleView v-else />
+            <ArticleView v-else :article="articleStore.selectedArticle" />
         </main>
     </div>
 </template>
@@ -16,11 +16,13 @@ import { onMounted } from "vue";
 import ArticleGrid from "./components/ArticleGrid.vue";
 import ArticleView from "./components/ArticleView.vue";
 import { useArticleStore } from "./composables/useArticles";
-//
+
+// articles composable
 const articleStore = useArticleStore();
 
-onMounted(() => {
-    articleStore.fetchArticles();
+// fetch artcles from json file
+onMounted(async () => {
+    await articleStore.fetchArticles();
 });
 </script>
 

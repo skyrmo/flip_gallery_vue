@@ -1,7 +1,12 @@
 <template>
-    <div class="article-card" @click="$emit('click', article, $event)">
+    <div
+        ref="cardRef"
+        class="article-card"
+        @click="$emit('click', article, $event)"
+    >
         <div class="article-image-container">
             <img
+                ref="imageRef"
                 :src="article.image"
                 :alt="article.title"
                 class="article-image"
@@ -13,14 +18,30 @@
     </div>
 </template>
 
-<script setup>
-import { defineProps, defineEmits } from "vue";
+<script setup lang="ts">
+import { defineProps, onMounted, ref } from "vue";
+import type { Article } from "../types/article";
 
-defineProps({
-    article: {
-        type: Object,
-        required: true,
-    },
+const props = defineProps<{
+    article: Article;
+}>();
+
+const cardRef = ref<HTMLElement>();
+const imageRef = ref<HTMLImageElement>();
+
+onMounted(() => {
+    if (cardRef.value && imageRef.value) {
+        const rect = cardRef.value.getBoundingClientRect();
+        const imageHeight = imageRef.value.offsetHeight;
+
+        props.article.initialPosition = {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            imageHeight,
+        };
+    }
 });
 
 defineEmits(["click"]);

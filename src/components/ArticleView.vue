@@ -16,26 +16,31 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Article } from "../types/article";
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useArticleStore } from "../composables/useArticles";
 
+const props = defineProps<{
+    article: Article;
+}>();
+
 const articleStore = useArticleStore();
-const article = computed(() => articleStore.selectedArticle);
 
-// console.log(article.value);
-// const isAnimating = ref(true);
+// const selectedArticle: Article | null = computed(
+//     () => articleStore.getSelectedArticle,
+// );
 
-// Refs for DOM elements
+// // Refs for DOM elements
 // const articleViewRef = ref(null);
 // const imageContainerRef = ref(null);
 // const contentRef = ref(null);
 
 // FLIP Animation implementation
 onMounted(() => {
-    if (!articleStore.initialPosition) return;
+    if (!props.article.initialPosition) return;
 
-    // const initialPos = articleStore.initialPosition;
+    // const initialPos = props.article.initialPosition;
     // const imageContainer = imageContainerRef.value;
     // const content = contentRef.value;
 
@@ -57,7 +62,7 @@ onMounted(() => {
     // scale(${scaleX}, ${scaleY})
     // `;
 
-    // // Hide content initially
+    // // // Hide content initially
     // content.style.opacity = "0";
 
     // // Force reflow
@@ -79,12 +84,11 @@ onMounted(() => {
 // // Clean up
 // onBeforeUnmount(() => {
 //     // Reset animation states
-//     // isAnimating.value = false;
+//     isAnimating.value = false;
 // });
 
 // Close article and animate back
 function closeArticle() {
-    console.log("Close me!");
     articleStore.closeArticle();
 }
 </script>
