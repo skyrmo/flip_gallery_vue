@@ -1,85 +1,135 @@
 <template>
     <div class="article-view" ref="articleViewRef">
+        <button class="close-button" ref="closeButtonRef" @click="closeArticle">
+            <span>&times;</span>
+        </button>
         <div class="article-image-container" ref="imageContainerRef">
-            <img :src="article.image" alt="Article Image" />
+            <img
+                :src="article.image"
+                alt="Article Image"
+                ref="articleImageRef"
+                class="article-image"
+            />
         </div>
 
         <div class="article-content" ref="contentRef">
-            <button class="close-button" @click="closeArticle">
-                <span>&times;</span>
-            </button>
             <h1 class="article-title">{{ article.title }}</h1>
             <div class="article-body">
-                {{ article.content }}
+                <template v-if="Array.isArray(article?.content)">
+                    <p
+                        v-for="(paragraph, index) in article.content"
+                        :key="index"
+                        class="article-paragraph"
+                    >
+                        {{ paragraph }}
+                    </p>
+                </template>
+                <template v-else>
+                    <p class="article-paragraph">{{ article?.content }}</p>
+                </template>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import type { Article } from "../types/article";
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, nextTick } from "vue";
 import { useArticleStore } from "../composables/useArticles";
+import type { Article } from "../types/article";
 
 const props = defineProps<{
-    article: Article;
+    article: Article | null;
 }>();
 
 const articleStore = useArticleStore();
 
-// const selectedArticle: Article | null = computed(
-//     () => articleStore.getSelectedArticle,
-// );
+// Refs for DOM elements
+const imageContainerRef = ref<HTMLElement>();
+const contentRef = ref<HTMLElement>();
+const closeButtonRef = ref<HTMLElement>();
+const articleImageRef = ref<HTMLImageElement>();
+let articleImage;
 
-// // Refs for DOM elements
-// const articleViewRef = ref(null);
-// const imageContainerRef = ref(null);
-// const contentRef = ref(null);
+// Watch for article changes and trigger FLIP animation
+watch(
+    () => props.article,
+    (newArticle) => {
+        // console.log("Article changed");
+        if (!newArticle?.initialPosition) return;
 
-// FLIP Animation implementation
-onMounted(() => {
-    if (!props.article.initialPosition) return;
+        // Start animation when article becomes available
+        startAnimation(newArticle);
+    },
+    { immediate: true },
+);
 
-    // const initialPos = props.article.initialPosition;
+async function startAnimation(article: Article) {
+    await nextTick();
+
+    articleImage = articleImageRef.value;
+
+    const initialPosition = article.initialPosition;
     // const imageContainer = imageContainerRef.value;
-    // const content = contentRef.value;
+    const content = contentRef.value;
+    const closeButton = closeButtonRef.value;
+    const imageContainer = imageContainerRef.value;
 
-    // // Set initial transform for the image container (FIRST)
-    // const viewportHeight = window.innerHeight;
-    // const viewportWidth = window.innerWidth;
+    // Function to perform FLIP animation
+    const performFLIPAnimation = (image: HTMLImageElement) => {
+        const finalImageRect = image.getBoundingClientRect();
 
-    // // Calculate scale factors
-    // const scaleX = initialPos.width / viewportWidth;
-    // const scaleY = initialPos.imageHeight / viewportHeight;
+        // Calculate scale factors (INVERT phase)
+        const scaleX = initialPosition.width / finalImageRect.width;
+        const scaleY = initialPosition.imageHeight / finalImageRect.height;
 
-    // // Calculate position differences
-    // const translateX = initialPos.left;
-    // const translateY = initialPos.top;
+        // Calculate position differences
+        const translateX = initialPosition.left - finalImageRect.left;
+        const translateY = initialPosition.top - finalImageRect.top;
 
-    // // Apply the initial transform (INVERT)
-    // imageContainer.style.transform = `
-    // translate(${translateX}px, ${translateY}px)
-    // scale(${scaleX}, ${scaleY})
-    // `;
+        // Hide content initially
+        content.style.opacity = "0";
+        closeButton.style.opacity = "0";
 
-    // // // Hide content initially
-    // content.style.opacity = "0";
+        // Apply initial transform to appear at the starting position (INVERT)
+        image.style.transformOrigin = "top left";
+        image.style.transform = `
+            translate(${translateX}px, ${translateY}px)
+            scale(${scaleX}, ${scaleY})
+        `;
 
-    // // Force reflow
-    // imageContainer.offsetHeight;
+        // Force reflow to ensure the transform is applied
+        imageContainer.offsetHeight;
 
-    // // Play the animation (PLAY)
-    // imageContainer.style.transition =
-    //     "transform 0.5s cubic-bezier(0.2, 0, 0.2, 1)";
-    // imageContainer.style.transform = "translate(0, 0) scale(1, 1)";
+        // PLAY: Animate to final position
+        image.style.transition =
+            "transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)";
+        image.style.transform = "translate(0, 0) scale(1, 1)";
 
-    // // Fade in content
-    // setTimeout(() => {
-    //     content.style.transition = "opacity 0.3s ease";
-    //     content.style.opacity = "1";
-    //     isAnimating.value = false;
-    // }, 300);
-});
+        // Fade in content after image animation starts
+        setTimeout(() => {
+            content.style.transition = "opacity 0.4s ease";
+            content.style.opacity = "1";
+
+            closeButton.style.transition = "opacity 0.4s ease";
+            closeButton.style.opacity = "1";
+        }, 1000);
+
+        // Animation complete
+        setTimeout(() => {
+            // Clean up transform styles after animation
+            imageContainer.style.transition = "";
+            imageContainer.style.transform = "";
+        }, 1001);
+    };
+
+    // Wait for image to load if needed
+    if (articleImage && articleImage.complete) {
+        performFLIPAnimation(articleImage);
+    } else {
+        if (!articleImage) return;
+        articleImage.onload = () => performFLIPAnimation(articleImage);
+    }
+}
 
 // // Clean up
 // onBeforeUnmount(() => {
@@ -95,35 +145,26 @@ function closeArticle() {
 
 <style scoped>
 .article-view {
-    position: fixed;
-    top: 0;
-    left: 0;
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    height: 100%;
-    z-index: 100;
-    overflow-y: auto;
-    background: white;
+    min-height: 100vh;
 }
 
 .article-image-container {
-    position: relative;
-    width: 100%;
-    height: 50vh;
-    background-size: cover;
-    background-position: center;
-    transform-origin: top left;
-    will-change: transform;
+    display: grid;
+    justify-content: center;
 }
 
 .article-content {
-    position: relative;
-    padding: 30px;
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 15px 15px 0 0;
-    margin-top: -20px;
-    will-change: opacity;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.article-image {
+    will-change: scale, translate;
 }
 
 .article-title {
@@ -134,12 +175,31 @@ function closeArticle() {
 .article-body {
     font-size: 1.1rem;
     line-height: 1.6;
+    max-width: 65ch;
+}
+
+.article-body {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.article-paragraph {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+}
+
+.article-paragraph:last-child {
+    margin-bottom: 0;
+}
+
+.article-title {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: var(--secondary-color);
 }
 
 .close-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    align-self: end;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -151,7 +211,7 @@ function closeArticle() {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.3s ease;
+    /*transition: background 0.3s ease;*/
 }
 
 .close-button:hover {

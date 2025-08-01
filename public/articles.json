@@ -2,25 +2,48 @@
     {
         "id": 1,
         "title": "Exploring Vue 3 Features",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "content": [
+            "Vue 3 introduces a revolutionary approach to building modern web applications with its Composition API, providing developers with more flexibility and better code organization. The new reactive system is built from the ground up with TypeScript in mind, offering superior performance and type safety.",
+            "One of the most significant improvements is the Composition API, which allows you to organize your component logic by feature rather than by option type. This makes it easier to extract and reuse logic across components, leading to more maintainable codebases.",
+            "The new reactivity engine in Vue 3 is proxy-based, which means it can detect changes to nested objects and arrays more efficiently than Vue 2's Object.defineProperty approach. This results in better performance and fewer edge cases to worry about.",
+            "Additionally, Vue 3 introduces Teleport, Fragments, and improved TypeScript support, making it a compelling choice for both small projects and large-scale applications. The framework maintains its gentle learning curve while providing enterprise-grade features."
+        ],
         "image": "./1.jpg"
     },
     {
         "id": 2,
         "title": "Mastering CSS Grid Layouts",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "content": [
+            "CSS Grid Layout is a two-dimensional layout system that revolutionizes how we approach web design. Unlike Flexbox, which is primarily one-dimensional, Grid allows you to work with both rows and columns simultaneously, giving you unprecedented control over your layouts.",
+            "The power of CSS Grid lies in its ability to create complex layouts with minimal code. You can define grid areas, position items precisely, and create responsive designs that adapt to different screen sizes without relying heavily on media queries.",
+            "Grid properties like grid-template-areas make it intuitive to design layouts by literally drawing them in your CSS. This visual approach to layout design bridges the gap between design tools and code implementation.",
+            "Modern browsers have excellent support for CSS Grid, making it a reliable choice for production websites. Combined with Flexbox for component-level layouts, Grid provides a complete solution for modern web design challenges.",
+            "Whether you're building a simple blog layout or a complex dashboard interface, mastering CSS Grid will significantly improve your ability to create maintainable and responsive designs."
+        ],
         "image": "./2.jpg"
     },
     {
         "id": 3,
-        "title": "Why use Vue over React",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "title": "Why Choose Vue Over React",
+        "content": [
+            "The choice between Vue and React often comes down to developer experience and project requirements. Vue offers a more approachable learning curve with its template-based syntax that feels familiar to anyone who has worked with HTML and CSS.",
+            "Vue's single-file components provide excellent developer ergonomics by keeping template, script, and styles in one cohesive unit. This approach makes it easier to understand and maintain components, especially for developers transitioning from traditional web development.",
+            "While React's JSX is powerful, Vue's template syntax is more declarative and easier to read for designers and junior developers. Vue also provides better built-in solutions for common patterns like two-way data binding and computed properties.",
+            "Performance-wise, both frameworks are excellent, but Vue's fine-grained reactivity system can be more efficient for certain use cases. Vue automatically tracks dependencies and updates only what's necessary, reducing the mental overhead of optimization.",
+            "The Vue ecosystem is carefully curated, with official libraries for routing, state management, and development tools. This cohesive ecosystem reduces decision fatigue and ensures compatibility between different parts of your application stack."
+        ],
         "image": "./3.jpg"
     },
     {
         "id": 4,
-        "title": "Master the sub-grid in CSS",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc eu nisl.",
+        "title": "Master the CSS Subgrid",
+        "content": [
+            "CSS Subgrid is an exciting addition to the CSS Grid specification that allows nested grid items to participate in their parent's grid structure. This feature solves many layout challenges that were previously difficult or impossible to achieve with pure CSS.",
+            "The primary benefit of subgrid is alignment across nested components. When you have a list of cards with varying content heights, subgrid allows elements within those cards to align with each other across the entire grid, creating visually cohesive layouts.",
+            "Implementing subgrid is straightforward once you understand the concept. By using 'grid-template-rows: subgrid' or 'grid-template-columns: subgrid', child elements inherit the grid lines from their parent, enabling precise alignment without complex calculations.",
+            "Browser support for subgrid is growing steadily, with Firefox leading the implementation and other browsers following suit. For production use, progressive enhancement strategies ensure that layouts remain functional even without subgrid support.",
+            "Real-world applications of subgrid include card layouts, form alignment, and complex dashboard interfaces where consistent spacing and alignment are crucial for user experience and visual hierarchy."
+        ],
         "image": "./4.jpg"
     }
 ]

@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-// import { onMounted, onUnmounted } from "vue";
 import ArticleCard from "./ArticleCard.vue";
 import { useArticleStore } from "../composables/useArticles";
 import type { Article } from "../types/article";
@@ -25,6 +24,7 @@ function handleArticleClick(article: Article) {
 
 <style scoped>
 .article-grid {
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
