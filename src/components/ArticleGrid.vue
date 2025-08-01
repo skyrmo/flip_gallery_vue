@@ -31,7 +31,6 @@ function handleArticleClick(article: Article) {
     margin-top: 20px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .article-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
