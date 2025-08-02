@@ -36,6 +36,7 @@
 import { ref, watch, nextTick } from "vue";
 import { useArticleStore } from "../composables/useArticles";
 import type { Article } from "../types/article";
+import { gsap } from "gsap";
 
 const props = defineProps<{
     article: Article | null;
@@ -63,6 +64,10 @@ watch(
     { immediate: true },
 );
 
+// Animation state
+const isAnimating = ref(false);
+let currentTimeline: gsap.core.Timeline | null = null;
+
 async function startAnimation(article: Article) {
     await nextTick();
 
@@ -81,45 +86,50 @@ async function startAnimation(article: Article) {
         // Calculate scale factors (INVERT phase)
         const scaleX = initialPosition.width / finalImageRect.width;
         const scaleY = initialPosition.imageHeight / finalImageRect.height;
-
-        // Calculate position differences
         const translateX = initialPosition.left - finalImageRect.left;
         const translateY = initialPosition.top - finalImageRect.top;
 
-        // Hide content initially
-        content.style.opacity = "0";
-        closeButton.style.opacity = "0";
+        // Create GSAP timeline
+        currentTimeline = gsap.timeline({
+            onComplete: () => {
+                isAnimating.value = false;
+                currentTimeline = null;
+            },
+        });
 
-        // Apply initial transform to appear at the starting position (INVERT)
-        image.style.transformOrigin = "top left";
-        image.style.transform = `
-            translate(${translateX}px, ${translateY}px)
-            scale(${scaleX}, ${scaleY})
-        `;
+        // Set initial state
+        gsap.set([content, closeButton], { opacity: 0 });
+        gsap.set(image, {
+            transformOrigin: "top left",
+            x: translateX,
+            y: translateY,
+            scaleX: scaleX,
+            scaleY: scaleY,
+        });
 
-        // Force reflow to ensure the transform is applied
-        imageContainer.offsetHeight;
-
-        // PLAY: Animate to final position
-        image.style.transition =
-            "transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)";
-        image.style.transform = "translate(0, 0) scale(1, 1)";
-
-        // Fade in content after image animation starts
-        setTimeout(() => {
-            content.style.transition = "opacity 0.4s ease";
-            content.style.opacity = "1";
-
-            closeButton.style.transition = "opacity 0.4s ease";
-            closeButton.style.opacity = "1";
-        }, 1000);
-
-        // Animation complete
-        setTimeout(() => {
-            // Clean up transform styles after animation
-            imageContainer.style.transition = "";
-            imageContainer.style.transform = "";
-        }, 1001);
+        // Animate image to final position
+        currentTimeline
+            .to(
+                image,
+                {
+                    x: 0,
+                    y: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    duration: 0.9,
+                    ease: "power3.out",
+                },
+                0.2,
+            )
+            .to(
+                [content, closeButton],
+                {
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: "power2.out",
+                },
+                0.9,
+            );
     };
 
     // Wait for image to load if needed
@@ -139,7 +149,65 @@ async function startAnimation(article: Article) {
 
 // Close article and animate back
 function closeArticle() {
-    articleStore.closeArticle();
+    if (isAnimating.value || !props.article?.initialPosition) {
+        // If no initial position or already animating, close immediately
+        articleStore.closeArticle();
+        return;
+    }
+
+    isAnimating.value = true;
+
+    const articleImage = articleImageRef.value;
+    const initialPosition = props.article.initialPosition;
+    const content = contentRef.value;
+    const closeButton = closeButtonRef.value;
+
+    if (!articleImage || !content || !closeButton) {
+        articleStore.closeArticle();
+        return;
+    }
+
+    const currentImageRect = articleImage.getBoundingClientRect();
+
+    // Calculate reverse animation values
+    const scaleX = initialPosition.width / currentImageRect.width;
+    const scaleY = initialPosition.imageHeight / currentImageRect.height;
+    const translateX = initialPosition.left - currentImageRect.left;
+    const translateY = initialPosition.top - currentImageRect.top;
+
+    // Create reverse animation timeline
+    currentTimeline = gsap.timeline({
+        onComplete: async () => {
+            isAnimating.value = false;
+            currentTimeline = null;
+            // Close the article after animation completes
+            // await nextTick();
+            gsap.delayedCall(0.2, () => {
+                articleStore.closeArticle();
+            });
+        },
+    });
+
+    // Fade out content and close button first
+    currentTimeline.to([content, closeButton], {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+    });
+
+    // Animate image back to initial position
+    currentTimeline.to(
+        articleImage,
+        {
+            x: translateX,
+            y: translateY,
+            scaleX: scaleX,
+            scaleY: scaleY,
+            duration: 0.7,
+            ease: "power3.in",
+        },
+        0.2,
+    ); // Start slightly after content fade out
 }
 </script>
 
