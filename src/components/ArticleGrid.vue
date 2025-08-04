@@ -18,7 +18,17 @@ const articleStore = useArticleStore();
 
 // Handle click on article card
 function handleArticleClick(article: Article) {
-    articleStore.selectArticle(article.id);
+    if (article.id == articleStore.clickedArticleId) {
+        articleStore.clickedArticleId = null;
+    } else {
+        articleStore.clickedArticleId = article.id;
+    }
+
+    // if (article.id == articleStore.selectedArticleId) {
+    //     articleStore.selectedArticleId = null;
+    // } else {
+    //     articleStore.selectedArticleId = article.id;
+    // }
 }
 </script>
 

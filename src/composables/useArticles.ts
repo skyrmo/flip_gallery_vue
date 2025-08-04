@@ -6,6 +6,7 @@ export const useArticleStore = defineStore("article", () => {
     // State
     const articles = ref<Article[]>([]);
     const selectedArticleId = ref<number | null>(null);
+    const clickedArticleId = ref<number | null>(null);
 
     // Simulate API call
     async function fetchArticles(): Promise<void> {
@@ -14,9 +15,9 @@ export const useArticleStore = defineStore("article", () => {
         articles.value = data;
     }
 
-    function selectArticle(id: number) {
-        selectedArticleId.value = id;
-    }
+    // function selectArticle(id: number) {
+    //     selectedArticleId.value = id;
+    // }
 
     // Getters
     const selectedArticle = computed(() =>
@@ -32,9 +33,10 @@ export const useArticleStore = defineStore("article", () => {
     return {
         articles,
         selectedArticleId,
+        clickedArticleId,
         selectedArticle,
         fetchArticles,
-        selectArticle,
+        // selectArticle,
         closeArticle,
     };
 });

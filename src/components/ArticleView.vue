@@ -119,7 +119,7 @@ async function startAnimation(article: Article) {
                     duration: 0.9,
                     ease: "power3.out",
                 },
-                0.2,
+                1.5,
             )
             .to(
                 [content, closeButton],

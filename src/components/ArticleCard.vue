@@ -2,6 +2,7 @@
     <div
         ref="cardRef"
         class="article-card"
+        :class="cardClasses"
         @click="$emit('click', article, $event)"
     >
         <div class="article-image-container">
@@ -19,15 +20,56 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, onMounted, ref } from "vue";
+import { defineProps, onMounted, ref, computed, watch } from "vue";
 import type { Article } from "../types/article";
+import { useArticleStore } from "../composables/useArticles";
+import { gsap } from "gsap";
 
 const props = defineProps<{
     article: Article;
 }>();
 
+const articleStore = useArticleStore();
+
 // const cardRef = ref<HTMLElement>();
 const imageRef = ref<HTMLImageElement>();
+const cardRef = ref<HTMLImageElement>();
+
+// Computed class based on store state
+const cardClasses = computed(() => ({
+    "is-selected": articleStore.clickedArticleId === props.article.id,
+    "isnt-selected":
+        articleStore.clickedArticleId &&
+        articleStore.clickedArticleId !== props.article.id,
+}));
+
+// Watch for changes in the clickedArticleId
+watch(
+    () => articleStore.clickedArticleId,
+    (newValue) => {
+        if (!cardRef.value) return;
+
+        if (articleStore.clickedArticleId == props.article.id) return;
+
+        // Create GSAP timeline
+        let currentTimeline = gsap.timeline({
+            onComplete: () => {
+                articleStore.selectedArticleId = articleStore.clickedArticleId;
+            },
+        });
+
+        // Animate card to fade out
+        currentTimeline.to(
+            cardRef.value,
+            {
+                opacity: 0,
+                duration: 0.5,
+                ease: "power3.out",
+            },
+            0,
+        );
+    },
+);
 
 onMounted(() => {
     const image = imageRef.value;
@@ -61,6 +103,14 @@ defineEmits(["click"]);
     cursor: pointer;
     background: #fee;
     padding: 1rem;
+}
+
+.article-card.is-selected {
+    background-color: blue;
+}
+
+.article-card.isnt-selected {
+    background-color: red;
 }
 
 .article-image-container {
