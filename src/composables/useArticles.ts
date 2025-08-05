@@ -7,6 +7,7 @@ export const useArticleStore = defineStore("article", () => {
     const articles = ref<Article[]>([]);
     const selectedArticleId = ref<number | null>(null);
     const clickedArticleId = ref<number | null>(null);
+    const clickedCardPosition = ref<{ x: number; y: number } | null>(null);
 
     // Simulate API call
     async function fetchArticles(): Promise<void> {
@@ -15,9 +16,12 @@ export const useArticleStore = defineStore("article", () => {
         articles.value = data;
     }
 
-    // function selectArticle(id: number) {
-    //     selectedArticleId.value = id;
-    // }
+    // Getters
+    const clickedArticle = computed(() =>
+        articles.value.find(
+            (article: Article) => article.id === clickedArticleId.value,
+        ),
+    );
 
     // Getters
     const selectedArticle = computed(() =>
@@ -28,15 +32,17 @@ export const useArticleStore = defineStore("article", () => {
 
     function closeArticle() {
         selectedArticleId.value = null;
+        clickedCardPosition.value = null;
     }
 
     return {
         articles,
         selectedArticleId,
         clickedArticleId,
+        clickedCardPosition,
+        clickedArticle,
         selectedArticle,
         fetchArticles,
-        // selectArticle,
         closeArticle,
     };
 });

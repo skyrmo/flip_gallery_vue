@@ -1,12 +1,15 @@
 <template>
     <div class="app-container">
-        <header>
+        <!-- <header>
             <h1>Owain's Blog</h1>
-        </header>
+        </header> -->
 
         <main>
             <ArticleGrid v-if="!articleStore.selectedArticleId" />
-            <ArticleView v-else :article="articleStore.selectedArticle" />
+            <ArticleView
+                v-else
+                :article="articleStore.selectedArticle || null"
+            />
         </main>
     </div>
 </template>

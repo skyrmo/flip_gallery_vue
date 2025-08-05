@@ -14,6 +14,14 @@
 
     --primary-color: #42b883;
     --secondary-color: #35495e;
+
+    --color-text: #4800d4;
+    --color-bg: #e8e8e8;
+    --color-link: #ec1752;
+    --color-link-hover: #eb1851;
+    --color-info: #272526;
+    --grid-item-bg: #f1f1f1;
+    --color-close: #ec1752;
 }
 
 * {
@@ -27,12 +35,12 @@ body {
     min-height: 100vh;
 }
 
-@media (prefers-color-scheme: light) {
+/*@media (prefers-color-scheme: light) {
     :root {
         color: #213547;
         background-color: #ffffff;
     }
-}
+}*/
 
 h1,
 h2,

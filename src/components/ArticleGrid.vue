@@ -17,18 +17,46 @@ import type { Article } from "../types/article";
 const articleStore = useArticleStore();
 
 // Handle click on article card
-function handleArticleClick(article: Article) {
-    if (article.id == articleStore.clickedArticleId) {
-        articleStore.clickedArticleId = null;
-    } else {
-        articleStore.clickedArticleId = article.id;
+function handleArticleClick(article: Article, event: MouseEvent) {
+    // Get the clicked card's center position
+    const target = event.currentTarget as HTMLElement;
+
+    const cardElement = target as HTMLDivElement;
+
+    const imageElement = cardElement.querySelector(
+        ".article-image",
+    ) as HTMLImageElement;
+
+    if (imageElement && cardElement) {
+        // Capture image position at click time
+        const imageRect = imageElement.getBoundingClientRect();
+        article.cardImagePosition = {
+            top: imageRect.top,
+            left: imageRect.left,
+            width: imageRect.width,
+            height: imageRect.height,
+            imageHeight: imageElement.offsetHeight,
+        };
+
+        // Capture card background position at click time
+        const cardRect = cardElement.getBoundingClientRect();
+        article.cardBackgroundPosition = {
+            top: cardRect.top,
+            left: cardRect.left,
+            width: cardRect.width,
+            height: cardRect.height,
+            backgroundHeight: cardElement.offsetHeight,
+        };
     }
 
-    // if (article.id == articleStore.selectedArticleId) {
-    //     articleStore.selectedArticleId = null;
-    // } else {
-    //     articleStore.selectedArticleId = article.id;
-    // }
+    // Get the clicked card's center position
+    const rect = target.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Store the clicked card position
+    articleStore.clickedCardPosition = { x: centerX, y: centerY };
+    articleStore.clickedArticleId = article.id;
 }
 </script>
 

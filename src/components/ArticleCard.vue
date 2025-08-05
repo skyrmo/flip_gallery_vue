@@ -2,7 +2,6 @@
     <div
         ref="cardRef"
         class="article-card"
-        :class="cardClasses"
         @click="$emit('click', article, $event)"
     >
         <div class="article-image-container">
@@ -20,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, onMounted, ref, computed, watch } from "vue";
+import { defineProps, onMounted, ref, watch } from "vue";
 import type { Article } from "../types/article";
 import { useArticleStore } from "../composables/useArticles";
 import { gsap } from "gsap";
@@ -35,21 +34,38 @@ const articleStore = useArticleStore();
 const imageRef = ref<HTMLImageElement>();
 const cardRef = ref<HTMLImageElement>();
 
-// Computed class based on store state
-const cardClasses = computed(() => ({
-    "is-selected": articleStore.clickedArticleId === props.article.id,
-    "isnt-selected":
-        articleStore.clickedArticleId &&
-        articleStore.clickedArticleId !== props.article.id,
-}));
-
-// Watch for changes in the clickedArticleId
+// Watch for changes in the selectedArticleId
 watch(
     () => articleStore.clickedArticleId,
-    (newValue) => {
-        if (!cardRef.value) return;
+    () => {
+        let card = cardRef.value;
 
-        if (articleStore.clickedArticleId == props.article.id) return;
+        if (articleStore.clickedArticleId == props.article.id) {
+            return;
+        }
+
+        // Calculate delay based on distance from clicked card
+        let delay = 0;
+        if (articleStore.clickedCardPosition && card) {
+            const cardRect = card.getBoundingClientRect();
+            const cardCenterX = cardRect.left + cardRect.width / 2;
+            const cardCenterY = cardRect.top + cardRect.height / 2;
+
+            const clickedPos = articleStore.clickedCardPosition;
+            const distance = Math.sqrt(
+                Math.pow(cardCenterX - clickedPos.x, 2) +
+                    Math.pow(cardCenterY - clickedPos.y, 2),
+            );
+
+            // Convert distance to delay with responsive calculation
+            // Adjust base distance based on viewport size for better mobile experience
+            const viewportWidth = window.innerWidth;
+            const baseDistance = viewportWidth < 768 ? 400 : 800;
+            const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+
+            const normalizedDistance = Math.min(distance / baseDistance, 2);
+            delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+        }
 
         // Create GSAP timeline
         let currentTimeline = gsap.timeline({
@@ -58,41 +74,41 @@ watch(
             },
         });
 
-        // Animate card to fade out
-        currentTimeline.to(
-            cardRef.value,
-            {
+        // Animate card to fade out with distance-based delay
+        if (card) {
+            currentTimeline.to(card, {
                 opacity: 0,
-                duration: 0.5,
+                duration: 0.6,
                 ease: "power3.out",
-            },
-            0,
-        );
+                delay: delay,
+            });
+        }
     },
 );
 
-onMounted(() => {
-    const image = imageRef.value;
-    if (image) {
-        // Wait for image to load
-        image.addEventListener("load", () => {
-            setImagePosition(image);
-        });
-    }
-});
+// Watch for when article is closed to fade cards back in
+watch(
+    () => articleStore.selectedArticleId,
+    (newValue, oldValue) => {
+        let card = cardRef.value;
 
-function setImagePosition(image: HTMLImageElement) {
-    const rect = image.getBoundingClientRect();
-    const imageHeight = image.offsetHeight;
+        // If article was closed (selectedArticleId became null)
+        if (oldValue !== null && newValue === null && card) {
+            // Reset clickedArticleId first
+            articleStore.clickedArticleId = null;
 
-    props.article.initialPosition = {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        imageHeight,
-    };
-}
+            // Fade card back in
+            gsap.to(card, {
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.out",
+                delay: Math.random() * 0.3, // Small random delay for staggered appearance
+            });
+        }
+    },
+);
+
+// onMounted(() => {});
 
 defineEmits(["click"]);
 </script>
