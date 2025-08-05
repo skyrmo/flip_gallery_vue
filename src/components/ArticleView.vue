@@ -113,10 +113,9 @@ async function startAnimation(article: Article) {
         zIndex: 1000,
     });
 
-    // Create GSAP timeline
-    currentTimeline = gsap.timeline({
-        onComplete: () => {},
-    });
+    // PHASE 2: Calculate FLIP positions AFTER container is positioned
+    // Wait a frame to ensure container position is applied
+    // await new Promise((resolve) => requestAnimationFrame(resolve));
 
     const articleBackgroundRect = articleBackground.getBoundingClientRect();
     const articleImageRect = articleImage.getBoundingClientRect();
@@ -155,6 +154,17 @@ async function startAnimation(article: Article) {
         scaleY: scaleY,
     });
 
+    // Create GSAP timeline
+    currentTimeline = gsap.timeline({
+        onComplete: () => {
+            gsap.set(articleViewWrapper, {
+                y: 0,
+            });
+            window.scrollTo(0, 0);
+            articleStore.setAnimating(false);
+        },
+    });
+
     // Animate image to final position
     currentTimeline
         .to(articleBackground, {
@@ -166,44 +176,28 @@ async function startAnimation(article: Article) {
             ease: "power3.out",
             delay: 0.6,
         })
-        .to(articleImage, {
-            x: 0,
-            y: 0,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 1,
-            ease: "power3.out",
-            delay: 0,
-        })
         .to(
-            articleViewWrapper,
+            articleImage,
             {
+                x: 0,
                 y: 0,
-                duration: 0.8,
-                ease: "power2.inOut",
-                onUpdate: () => {
-                    const progress = currentTimeline.progress();
-                    window.scrollTo(0, currentScrollY * (1 - progress));
-                },
+                scaleX: 1,
+                scaleY: 1,
+                duration: 1,
+                ease: "power3.out",
+            },
+            "<",
+        )
+        .to(
+            [articleContent, articleCloseButton, articleTitle],
+            {
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.out",
             },
             "-=0.3",
         );
-
-    if (articleContent && articleCloseButton && articleTitle) {
-        currentTimeline.to([articleContent, articleCloseButton, articleTitle], {
-            opacity: 1,
-            duration: 0.4,
-            ease: "power2.out",
-            delay: 0,
-        });
-    }
 }
-
-// // Clean up
-// onBeforeUnmount(() => {
-//     // Reset animation states
-//     isAnimating.value = false;
-// });
 
 // Close article and animate back
 function closeArticle() {

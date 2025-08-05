@@ -35,6 +35,18 @@ export const useArticleStore = defineStore("article", () => {
         clickedCardPosition.value = null;
     }
 
+    const isAnimating = ref(false);
+
+    function setAnimating(animating: boolean) {
+        isAnimating.value = animating;
+
+        if (animating) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+    }
+
     return {
         articles,
         selectedArticleId,
@@ -44,5 +56,7 @@ export const useArticleStore = defineStore("article", () => {
         selectedArticle,
         fetchArticles,
         closeArticle,
+        isAnimating,
+        setAnimating,
     };
 });

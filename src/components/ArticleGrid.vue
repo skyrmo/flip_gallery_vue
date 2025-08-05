@@ -18,6 +18,7 @@ const articleStore = useArticleStore();
 
 // Handle click on article card
 function handleArticleClick(article: Article, event: MouseEvent) {
+    articleStore.setAnimating(true);
     // Get the clicked card's center position
     const target = event.currentTarget as HTMLElement;
 
