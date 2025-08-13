@@ -4,21 +4,12 @@ export interface Article {
     subtitle: string;
     content: string;
     image: string;
-    scrollPosition?: number;
-
-    cardImagePosition: {
-        top: number;
-        left: number;
-        width: number;
-        height: number;
-        imageHeight: number;
-    } | null;
-
-    cardBackgroundPosition: {
-        top: number;
-        left: number;
-        width: number;
-        height: number;
-        backgroundHeight: number;
-    } | null;
 }
+
+export type Position = {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    yScroll: number;
+} | null;

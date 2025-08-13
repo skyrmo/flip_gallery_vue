@@ -1,12 +1,8 @@
 <template>
     <div class="app-container">
-        <!-- <header>
-            <h1>Owain's Blog</h1>
-        </header> -->
-
         <main>
-            <ArticleGrid v-show="!articleStore.selectedArticleId" />
-            <ArticleView
+            <Grid v-show="!cardStore.clickedCardId" />
+            <Article
                 v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"
             />
@@ -15,15 +11,18 @@
 </template>
 
 <script setup lang="ts">
-import ArticleGrid from "./components/ArticleGrid.vue";
-import ArticleView from "./components/ArticleView.vue";
+import Grid from "./components/Grid.vue";
+import Article from "./components/Article.vue";
+
 import { onMounted } from "vue";
-import { useArticleStore } from "./composables/useArticle";
+import { useArticleStore } from "./composables/useArticles";
+import { useCardStore } from "./composables/useCards";
 
-// articles composable
+// load composable
 const articleStore = useArticleStore();
+const cardStore = useCardStore();
 
-// fetch artcles from json file
+// fetch artcles from json file (emulates API call).
 onMounted(async () => {
     await articleStore.fetchArticles();
 });

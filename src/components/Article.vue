@@ -1,9 +1,6 @@
 <template>
     <div class="article__wrapper" ref="articleWrapperRef">
-        <!-- This is the background element that will be animated -->
         <div class="background" ref="articleBackgroundRef"></div>
-
-        <!-- This is the content container that remains unaffected by the scaling -->
         <div class="content__wrapper">
             <button
                 class="button__close"
@@ -52,7 +49,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import type { Article } from "../types/article";
-import { useArticleStore } from "../composables/useArticle";
+import { useArticleStore } from "../composables/useArticles";
 import { gsap } from "gsap";
 
 const props = defineProps<{
@@ -215,7 +212,7 @@ function closeArticle() {
 
     const cardImagePos = props.article.cardImagePosition;
     const cardBGPos = props.article.cardBackgroundPosition;
-    const originalScrollY = props.article.scrollPosition || 0;
+    const originalScrollY = props.article.scrollPositionAtClick || 0;
 
     if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
         articleStore.closeArticle();
