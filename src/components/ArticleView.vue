@@ -1,32 +1,36 @@
 <template>
-    <div class="article-view-wrapper">
+    <div class="article__wrapper" ref="articleWrapperRef">
         <!-- This is the background element that will be animated -->
-        <div class="article-background" ref="articleBackgroundRef"></div>
+        <div class="background" ref="articleBackgroundRef"></div>
 
         <!-- This is the content container that remains unaffected by the scaling -->
-        <div class="article-content-container">
+        <div class="content__wrapper">
             <button
-                class="close-button"
+                class="button__close"
                 ref="closeButtonRef"
                 @click="closeArticle"
             >
                 <span>&times;</span>
             </button>
 
-            <div class="article-image-container" ref="imageContainerRef">
-                <h1 class="article-title" ref="titleRef">
-                    {{ article?.title }}
-                </h1>
-                <img
-                    :src="article?.image"
-                    alt="Article Image"
-                    ref="articleImageRef"
-                    class="article-image"
-                />
+            <div class="hero-section">
+                <div class="image__wrapper">
+                    <img
+                        :src="article?.image"
+                        alt="Article Image"
+                        ref="articleImageRef"
+                        class="image"
+                    />
+                </div>
+                <div class="title__wrapper">
+                    <h1 class="title" ref="titleRef">
+                        {{ article?.title }}
+                    </h1>
+                </div>
             </div>
 
-            <div class="article-content" ref="contentRef">
-                <div class="article-body">
+            <div class="content" ref="contentRef">
+                <div class="body">
                     <template v-if="Array.isArray(article?.content)">
                         <p
                             v-for="(paragraph, index) in article.content"
@@ -48,7 +52,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import type { Article } from "../types/article";
-import { useArticleStore } from "../composables/useArticles";
+import { useArticleStore } from "../composables/useArticle";
 import { gsap } from "gsap";
 
 const props = defineProps<{
@@ -57,10 +61,11 @@ const props = defineProps<{
 
 // Refs for DOM elements
 const contentRef = ref<HTMLElement>();
-const titleRef = ref();
+const titleRef = ref<HTMLElement>();
 const closeButtonRef = ref<HTMLElement>();
 const articleImageRef = ref<HTMLImageElement>();
 const articleBackgroundRef = ref<HTMLDivElement>();
+const articleViewWrapperRef = ref<HTMLElement>();
 
 let currentTimeline: gsap.core.Timeline | null = null;
 
@@ -86,9 +91,8 @@ watch(
 async function startAnimation(article: Article) {
     await nextTick(); // important! do not remove.
 
-    let articleImage = articleImageRef.value;
-    let articleBackground = articleBackgroundRef.value;
-
+    const articleImage = articleImageRef.value;
+    const articleBackground = articleBackgroundRef.value;
     const articleContent = contentRef.value;
     const articleCloseButton = closeButtonRef.value;
     const articleTitle = titleRef.value;
@@ -100,22 +104,16 @@ async function startAnimation(article: Article) {
         return;
     }
 
-    const articleViewWrapper = document.querySelector(".article-view-wrapper");
+    const articleViewWrapper = articleViewWrapperRef.value;
 
     const currentScrollY = window.scrollY;
 
-    console.log(currentScrollY);
-
     // Position article container at current scroll level
-    gsap.set(articleViewWrapper, {
+    gsap.set(articleViewWrapper!, {
         y: currentScrollY,
         position: "relative",
         zIndex: 1000,
     });
-
-    // PHASE 2: Calculate FLIP positions AFTER container is positioned
-    // Wait a frame to ensure container position is applied
-    // await new Promise((resolve) => requestAnimationFrame(resolve));
 
     const articleBackgroundRect = articleBackground.getBoundingClientRect();
     const articleImageRect = articleImage.getBoundingClientRect();
@@ -157,11 +155,10 @@ async function startAnimation(article: Article) {
     // Create GSAP timeline
     currentTimeline = gsap.timeline({
         onComplete: () => {
-            gsap.set(articleViewWrapper, {
+            gsap.set(articleViewWrapper!, {
                 y: 0,
             });
             window.scrollTo(0, 0);
-            articleStore.setAnimating(false);
         },
     });
 
@@ -201,18 +198,115 @@ async function startAnimation(article: Article) {
 
 // Close article and animate back
 function closeArticle() {
-    articleStore.closeArticle();
+    if (
+        !props.article?.cardImagePosition ||
+        !props.article?.cardBackgroundPosition
+    ) {
+        articleStore.closeArticle();
+        articleStore.setAnimating(false);
+        return;
+    }
+
+    const articleImage = articleImageRef.value;
+    const articleBackground = articleBackgroundRef.value;
+    const articleContent = contentRef.value;
+    const articleCloseButton = closeButtonRef.value;
+    const articleTitle = titleRef.value;
+
+    const cardImagePos = props.article.cardImagePosition;
+    const cardBGPos = props.article.cardBackgroundPosition;
+    const originalScrollY = props.article.scrollPosition || 0;
+
+    if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
+        articleStore.closeArticle();
+        articleStore.setAnimating(false);
+        return;
+    }
+
+    // Kill any existing timeline
+    if (currentTimeline) {
+        currentTimeline.kill();
+    }
+
+    // Restore original scroll position before starting reverse animation
+    const articleViewWrapper = document.querySelector(".article__wrapper");
+    if (articleViewWrapper) {
+        gsap.set(articleViewWrapper, {
+            y: originalScrollY,
+        });
+        window.scrollTo(0, originalScrollY);
+    }
+
+    // Get current positions for reverse animation
+    const articleBackgroundRect = articleBackground.getBoundingClientRect();
+    const articleImageRect = articleImage.getBoundingClientRect();
+
+    // Calculate scale factors for reverse animation (back to card size)
+    const scaleX = cardImagePos.width / articleImageRect.width;
+    const scaleY = cardImagePos.imageHeight / articleImageRect.height;
+    const translateX = cardImagePos.left - articleImageRect.left;
+    const translateY = cardImagePos.top - articleImageRect.top;
+
+    // Calculate scale factors for background reverse animation
+    const bgScaleX = cardBGPos.width / articleBackgroundRect.width;
+    const bgScaleY = cardBGPos.backgroundHeight / articleBackgroundRect.height;
+    const bgTranslateX = cardBGPos.left - articleBackgroundRect.left;
+    const bgTranslateY = cardBGPos.top - articleBackgroundRect.top;
+
+    // Create reverse animation timeline
+    const reverseTimeline = gsap.timeline({
+        onComplete: () => {
+            // Call store close article after animation completes
+            articleStore.closeArticle();
+
+            // Re-enable scrolling
+            articleStore.setAnimating(false);
+        },
+    });
+
+    // First fade out content elements
+    reverseTimeline
+        .to([articleContent, articleCloseButton, articleTitle], {
+            opacity: 0,
+            duration: 0.3,
+            ease: "power2.out",
+        })
+        // Then animate image and background back to card position
+        .to(
+            articleImage,
+            {
+                x: translateX,
+                y: translateY,
+                scaleX: scaleX,
+                scaleY: scaleY,
+                duration: 0.8,
+                ease: "power3.out",
+            },
+            "-=0.1",
+        )
+        .to(
+            articleBackground,
+            {
+                x: bgTranslateX,
+                y: bgTranslateY,
+                scaleX: bgScaleX,
+                scaleY: bgScaleY,
+                duration: 0.8,
+                ease: "power3.out",
+            },
+            "<",
+        );
 }
 </script>
 
 <style scoped>
-.article-view-wrapper {
+.article__wrapper {
     position: relative;
     width: 100%;
     min-height: 100vh;
 }
 
-.article-background {
+.background {
     position: fixed;
     top: 0;
     left: 0;
@@ -223,7 +317,7 @@ function closeArticle() {
     will-change: transform, width, height, top, left;
 }
 
-.article-content-container {
+.content__wrapper {
     position: relative;
     z-index: 20;
     width: 100%;
@@ -233,29 +327,37 @@ function closeArticle() {
     padding: 20px;
 }
 
-.article-image-container {
+.hero-section {
     display: grid;
-    grid-template-areas: "article-header";
+    /*border: 2px solid yellow;*/
 }
 
-.article-image {
-    grid-area: article-header;
-    /*max-width: 800px;*/
-    justify-self: center;
-    will-change: transform, width, height, top, left;
+.image__wrapper {
+    grid-area: 1 / 1;
+    max-height: 75vh; /* sets the height of the image  in the hero section */
+    display: flex;
+    justify-content: center;
+    /*border: 2px solid red;*/
 }
 
-.article-title {
-    grid-area: article-header;
-    font-size: 3.2rem;
-    display: block;
+.image {
+    height: 100%;
+}
+
+.title__wrapper {
+    grid-area: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
     color: var(--color-text);
-    justify-self: center;
-    align-self: center;
+    font-size: min(6rem, 7vw);
     z-index: 100;
 }
 
-.article-content {
+.content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -265,11 +367,10 @@ function closeArticle() {
     margin-top: 20px;
 }
 
-.article-body {
+.body {
     font-size: 1.1rem;
     line-height: 1.6;
     max-width: 93ch;
-    /*color: #242424;*/
     color: var(--color-text);
     column-width: 45ch;
     column-gap: 1.6rem;
@@ -279,17 +380,16 @@ function closeArticle() {
 .article-paragraph {
     margin-bottom: 1.5rem;
     text-align: justify;
-    /*columns: 2;*/
     break-inside: avoid;
-    page-break-inside: avoid; /* For older browsers */
+    page-break-inside: avoid;
 }
 
 .article-paragraph:last-child {
     margin-bottom: 0;
 }
 
-.close-button {
-    align-self: flex-end;
+.button__close {
+    align-self: center;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -305,7 +405,7 @@ function closeArticle() {
     z-index: 30;
 }
 
-.close-button:hover {
+.button__close:hover {
     background: rgba(0, 0, 0, 0.7);
 }
 </style>

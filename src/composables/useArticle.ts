@@ -8,6 +8,7 @@ export const useArticleStore = defineStore("article", () => {
     const selectedArticleId = ref<number | null>(null);
     const clickedArticleId = ref<number | null>(null);
     const clickedCardPosition = ref<{ x: number; y: number } | null>(null);
+    const isAnimating = ref<boolean>(false);
 
     // Simulate API call
     async function fetchArticles(): Promise<void> {
@@ -34,8 +35,6 @@ export const useArticleStore = defineStore("article", () => {
         selectedArticleId.value = null;
         clickedCardPosition.value = null;
     }
-
-    const isAnimating = ref(false);
 
     function setAnimating(animating: boolean) {
         isAnimating.value = animating;

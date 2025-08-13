@@ -4,6 +4,7 @@ export interface Article {
     subtitle: string;
     content: string;
     image: string;
+    scrollPosition?: number;
 
     cardImagePosition: {
         top: number;

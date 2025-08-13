@@ -19,16 +19,21 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, onMounted, ref, watch } from "vue";
-import type { Article } from "../types/article";
-import { useArticleStore } from "../composables/useArticles";
+import { defineProps, ref, watch } from "vue";
+import { useArticleStore } from "../composables/useArticle";
 import { gsap } from "gsap";
+import type { Article } from "../types/article";
 
 const props = defineProps<{
     article: Article;
 }>();
 
 const articleStore = useArticleStore();
+
+// console.log("ArticleCard mounted - Article ID:", props.article.id);
+// console.log("Initial articleStore:", articleStore);
+// console.log("Initial selectedArticleId:", articleStore.selectedArticleId);
+// console.log("Store is reactive?", articleStore.$id);
 
 // const cardRef = ref<HTMLElement>();
 const imageRef = ref<HTMLImageElement>();
@@ -46,6 +51,7 @@ watch(
 
         // Calculate delay based on distance from clicked card
         let delay = 0;
+
         if (articleStore.clickedCardPosition && card) {
             const cardRect = card.getBoundingClientRect();
             const cardCenterX = cardRect.left + cardRect.width / 2;
@@ -67,6 +73,9 @@ watch(
             delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
         }
 
+        // Disable scrolling when animation starts
+        articleStore.setAnimating(true);
+
         // Create GSAP timeline
         let currentTimeline = gsap.timeline({
             onComplete: () => {
@@ -78,35 +87,98 @@ watch(
         if (card) {
             currentTimeline.to(card, {
                 opacity: 0,
-                duration: 0.6,
+                duration: 0.5,
                 ease: "power3.out",
                 delay: delay,
             });
+
+            // possible idea for starting the articlw animation while the cards are still fading out.
+            // currentTimeline.delayedCall(1.5, () => {
+            //     articleStore.selectedArticleId = articleStore.clickedArticleId;
+            // });
         }
     },
 );
 
 // Watch for when article is closed to fade cards back in
 watch(
-    () => articleStore.selectedArticleId,
+    () => {
+        return articleStore.clickedArticleId;
+    },
     (newValue, oldValue) => {
-        let card = cardRef.value;
+        console.log(
+            "🔥 WATCH clickedArticleId TRIGGERED in Article:",
+            props.article.id,
+        );
+        console.log("Values:", { newValue, oldValue });
+        console.log("Store state:", {
+            selectedArticleId: articleStore.selectedArticleId,
+            clickedArticleId: articleStore.clickedArticleId,
+        });
 
-        // If article was closed (selectedArticleId became null)
-        if (oldValue !== null && newValue === null && card) {
-            // Reset clickedArticleId first
-            articleStore.clickedArticleId = null;
-
-            // Fade card back in
-            gsap.to(card, {
-                opacity: 1,
-                duration: 0.4,
-                ease: "power2.out",
-                delay: Math.random() * 0.3, // Small random delay for staggered appearance
-            });
-        }
+        // let card = cardRef.value;
+        // ... rest of your logic
+    },
+    {
+        // immediate: true,
+        flush: "post",
     },
 );
+
+// // Watch for when article is closed to fade cards back in
+// watch(
+//     () => articleStore.selectedArticleId,
+//     (newValue, oldValue) => {
+//         console.log(
+//             "selectedArticleId Changed:",
+//             articleStore.selectedArticleId,
+//             newValue,
+//             oldValue,
+//         );
+//         // let card = cardRef.value;
+//         // console.log(oldValue, newValue, card);
+
+//         // // If article was closed (selectedArticleId became null)
+//         // if (oldValue !== null && newValue === null && card) {
+//         //     console.log("Inside close animation");
+//         //     // Reset clickedArticleId first
+//         //     articleStore.clickedArticleId = null;
+
+//         //     // Calculate delay based on distance from clicked card (similar to fade out)
+//         //     let delay = 0;
+
+//         //     if (articleStore.clickedCardPosition && card) {
+//         //         const cardRect = card.getBoundingClientRect();
+//         //         const cardCenterX = cardRect.left + cardRect.width / 2;
+//         //         const cardCenterY = cardRect.top + cardRect.height / 2;
+
+//         //         const clickedPos = articleStore.clickedCardPosition;
+//         //         const distance = Math.sqrt(
+//         //             Math.pow(cardCenterX - clickedPos.x, 2) +
+//         //                 Math.pow(cardCenterY - clickedPos.y, 2),
+//         //         );
+
+//         //         const viewportWidth = window.innerWidth;
+//         //         const baseDistance = viewportWidth < 768 ? 400 : 800;
+//         //         const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+
+//         //         const normalizedDistance = Math.min(distance / baseDistance, 2);
+//         //         delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+//         //     }
+
+//         //     // Fade card back in with distance-based delay
+//         //     gsap.to(card, {
+//         //         opacity: 1,
+//         //         duration: 0.4,
+//         //         ease: "power2.out",
+//         //         delay: delay,
+//         //         onComplete: () => {
+//         //             // Animation complete - scroll re-enabling is handled in ArticleView
+//         //         },
+//         //     });
+//         // }
+//     },
+// );
 
 // onMounted(() => {});
 

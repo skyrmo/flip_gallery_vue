@@ -5,9 +5,9 @@
         </header> -->
 
         <main>
-            <ArticleGrid v-if="!articleStore.selectedArticleId" />
+            <ArticleGrid v-show="!articleStore.selectedArticleId" />
             <ArticleView
-                v-else
+                v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"
             />
         </main>
@@ -18,7 +18,7 @@
 import ArticleGrid from "./components/ArticleGrid.vue";
 import ArticleView from "./components/ArticleView.vue";
 import { onMounted } from "vue";
-import { useArticleStore } from "./composables/useArticles";
+import { useArticleStore } from "./composables/useArticle";
 
 // articles composable
 const articleStore = useArticleStore();
