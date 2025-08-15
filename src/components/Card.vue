@@ -44,6 +44,7 @@ onMounted(() => {
 });
 
 function handleCardClick() {
+    cardStore.cardClickYScroll = window.scrollY;
     cardStore.clickedCardId = props.article.id;
 }
 
@@ -51,59 +52,96 @@ function handleCardClick() {
 watch(
     () => cardStore.clickedCardId,
     () => {
-        if (cardStore.clickedCardId == props.article.id) {
-            return;
-        }
+        // const card = cardRef.value;
+        // if (!card) {
+        //     return;
+        // }
 
-        const card = cardRef.value;
-        if (!card) {
-            return;
-        }
-
-        // Calculate delay based on distance from clicked card
-        let delay = 0;
-        if (cardStore.clickedCardPosition && card) {
-            const cardRect = card.getBoundingClientRect();
-            const cardCenterX = cardRect.left + cardRect.width / 2;
-            const cardCenterY = cardRect.top + cardRect.height / 2;
-
-            const clickedPos = cardStore.clickedCardPosition;
-            const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
-            const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
-
-            const distance = Math.sqrt(
-                Math.pow(cardCenterX - clickedCardCenterX, 2) +
-                    Math.pow(cardCenterY - clickedCardCenterY, 2),
-            );
-
-            // Convert distance to delay with responsive calculation
-            // Adjust base distance based on viewport size for better mobile experience
-            const viewportWidth = window.innerWidth;
-            const baseDistance = viewportWidth < 768 ? 400 : 800;
-            const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
-            const normalizedDistance = Math.min(distance / baseDistance, 2);
-            delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
-        }
-
-        // Create GSAP timeline
-        let currentTimeline = gsap.timeline({
-            onComplete: () => {
-                // Disable scrolling when animation starts
-                articleStore.setAnimating(true);
-
-                articleStore.selectedArticleId = cardStore.clickedCardId;
-            },
-        });
-
-        // Animate card to fade out with distance-based delay
-        currentTimeline.to(card, {
-            opacity: 0,
-            duration: 0.5,
-            ease: "power3.out",
-            delay: delay,
-        });
+        articleStore.selectedArticleId = cardStore.clickedCardId;
     },
 );
+
+function animateIn(card: HTMLElement) {
+    // // Calculate delay based on distance from clicked card
+    // let delay = 0;
+    // if (cardStore.clickedCardPosition && card) {
+    //     const cardRect = card.getBoundingClientRect();
+    //     const cardCenterX = cardRect.left + cardRect.width / 2;
+    //     const cardCenterY = cardRect.top + cardRect.height / 2;
+    //     const clickedPos = cardStore.clickedCardPosition;
+    //     const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
+    //     const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
+    //     const distance = Math.sqrt(
+    //         Math.pow(cardCenterX - clickedCardCenterX, 2) +
+    //             Math.pow(cardCenterY - clickedCardCenterY, 2),
+    //     );
+    //     // Convert distance to delay with responsive calculation
+    //     // Adjust base distance based on viewport size for better mobile experience
+    //     const viewportWidth = window.innerWidth;
+    //     const baseDistance = viewportWidth < 768 ? 400 : 800;
+    //     const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+    //     const normalizedDistance = Math.min(distance / baseDistance, 2);
+    //     delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+    // }
+    // // Create GSAP timeline
+    // let currentTimeline = gsap.timeline({
+    //     onComplete: () => {
+    //         cardStore.clickedCardId = null;
+    //     },
+    // });
+    // // Animate card to fade out with distance-based delay
+    // currentTimeline.to(card, {
+    //     opacity: 1,
+    //     duration: 0.5,
+    //     ease: "power3.out",
+    //     delay: 0,
+    // });
+}
+
+function animateOut(card: HTMLElement) {
+    // Calculate delay based on distance from clicked card
+    let delay = 0;
+    if (cardStore.clickedCardPosition && card) {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenterX = cardRect.left + cardRect.width / 2;
+        const cardCenterY = cardRect.top + cardRect.height / 2;
+
+        const clickedPos = cardStore.clickedCardPosition;
+        const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
+        const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
+
+        const distance = Math.sqrt(
+            Math.pow(cardCenterX - clickedCardCenterX, 2) +
+                Math.pow(cardCenterY - clickedCardCenterY, 2),
+        );
+
+        // Convert distance to delay with responsive calculation
+        // Adjust base distance based on viewport size for better mobile experience
+        const viewportWidth = window.innerWidth;
+        const baseDistance = viewportWidth < 768 ? 400 : 800;
+        const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+        const normalizedDistance = Math.min(distance / baseDistance, 2);
+        delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+    }
+
+    // Create GSAP timeline
+    let currentTimeline = gsap.timeline({
+        onComplete: () => {
+            // Disable scrolling when animation starts
+            articleStore.setAnimating(true);
+
+            articleStore.selectedArticleId = cardStore.clickedCardId;
+        },
+    });
+
+    // Animate card to fade out with distance-based delay
+    currentTimeline.to(card, {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power3.out",
+        delay: delay,
+    });
+}
 
 defineEmits(["click"]);
 </script>

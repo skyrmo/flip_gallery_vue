@@ -1,7 +1,7 @@
 <template>
     <div class="app-container">
         <main>
-            <Grid v-show="!articleStore.selectedArticleId" />
+            <Grid v-show="articleStore.selectedArticleId === null" />
             <Article
                 v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"

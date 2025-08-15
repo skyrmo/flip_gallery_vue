@@ -70,6 +70,8 @@ let currentTimeline: gsap.core.Timeline | null = null;
 const articleStore = useArticleStore();
 const cardStore = useCardStore();
 
+let scrollY = 0;
+
 // Watch for article changes and trigger FLIP animation
 watch(
     () => props.article,
@@ -90,6 +92,7 @@ watch(
 async function startAnimation() {
     await nextTick(); // important! do not remove.
 
+    const articleViewWrapper = articleWrapperRef.value;
     const articleImage = articleImageRef.value;
     const articleBackground = articleBackgroundRef.value;
     const articleContent = contentRef.value;
@@ -99,24 +102,21 @@ async function startAnimation() {
     const cardImagePos = cardStore.clickedImagePosition;
     const cardBGPos = cardStore.clickedCardPosition;
 
+    scrollY = window.scrollY;
+
     if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
         return;
     }
 
-    const articleViewWrapper = articleWrapperRef.value;
-
-    const currentScrollY = window.scrollY;
-
     // Position article container at current scroll level
     gsap.set(articleViewWrapper!, {
-        y: currentScrollY,
+        y: scrollY,
         position: "relative",
         zIndex: 1000,
     });
 
     const articleBackgroundRect = articleBackground.getBoundingClientRect();
     const articleImageRect = articleImage.getBoundingClientRect();
-    // const scrollY = cardImagePos.scrollY;
 
     // Calculate scale factors (INVERT phase)
     const scaleX = cardImagePos.width / articleImageRect.width;
@@ -155,9 +155,8 @@ async function startAnimation() {
     // Create GSAP timeline
     currentTimeline = gsap.timeline({
         onComplete: () => {
-            gsap.set(articleViewWrapper!, {
-                y: 0,
-            });
+            // gsap.set([articleBackground, articleImage], { clearProps: "all" });
+            gsap.set(articleViewWrapper!, { y: 0 });
             window.scrollTo(0, 0);
             articleStore.setAnimating(false);
         },
@@ -212,7 +211,6 @@ function closeArticle() {
 
     const cardImagePos = cardStore.clickedImagePosition;
     const cardBGPos = cardStore.clickedCardPosition;
-    const originalScrollY = cardBGPos.scrollY || 0;
 
     if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
         articleStore.setAnimating(false);
@@ -228,9 +226,9 @@ function closeArticle() {
     const articleViewWrapper = articleWrapperRef.value;
     if (articleViewWrapper) {
         gsap.set(articleViewWrapper, {
-            y: originalScrollY,
+            y: scrollY,
         });
-        window.scrollTo(0, originalScrollY);
+        window.scrollTo(0, scrollY);
     }
 
     // Get current positions for reverse animation
@@ -252,6 +250,19 @@ function closeArticle() {
     // Create reverse animation timeline
     const reverseTimeline = gsap.timeline({
         onComplete: () => {
+            // Clear all transforms before removing article
+            gsap.set([articleBackground, articleImage, articleViewWrapper], {
+                clearProps: "all",
+            });
+            gsap.set(articleViewWrapper!, { y: 0 });
+
+            articleStore.setAnimating(false);
+
+            // remove the article modal
+            articleStore.selectedArticleId = null;
+
+            cardStore.clickedCardId = null;
+
             // Re-enable scrolling
             articleStore.setAnimating(false);
         },
