@@ -1,9 +1,5 @@
 <template>
-    <div
-        class="article-card"
-        @click="$emit('click', article, $event)"
-        ref="cardRef"
-    >
+    <div class="article-card" @click="handleCardClick" ref="cardRef">
         <div class="article-image-container">
             <img
                 ref="imageRef"
@@ -20,10 +16,10 @@
 
 <script setup lang="ts">
 import { defineProps, ref, watch } from "vue";
-// import { useArticleStore } from "../composables/useArticles";
+import { useArticleStore } from "../composables/useArticles";
 import { useCardStore } from "../composables/useCards";
 
-// import { gsap } from "gsap";
+import { gsap } from "gsap";
 import type { Article } from "../types/article";
 import { onMounted } from "vue";
 
@@ -31,7 +27,7 @@ const props = defineProps<{
     article: Article;
 }>();
 
-// const articleStore = useArticleStore();
+const articleStore = useArticleStore();
 const cardStore = useCardStore();
 
 // const imageRef = ref<HTMLImageElement>();
@@ -47,61 +43,67 @@ onMounted(() => {
     cardStore.addImage(props.article.id, image);
 });
 
-// // Watch for changes in the selectedArticleId
-// watch(
-//     () => articleStore.selectedArticleId,
-//     () => {
-//         let card = cardRef.value;
+function handleCardClick() {
+    cardStore.clickedCardId = props.article.id;
+}
 
-//         if (articleStore.selectedArticleId == props.article.id) {
-//             return;
-//         }
+// Watch for changes in the selectedArticleId
+watch(
+    () => cardStore.clickedCardId,
+    () => {
+        if (cardStore.clickedCardId == props.article.id) {
+            return;
+        }
 
-//         // Calculate delay based on distance from clicked card
-//         let delay = 0;
+        const card = cardRef.value;
+        if (!card) {
+            return;
+        }
 
-//         if (articleStore.clickedCardPosition && card) {
-//             const cardRect = card.getBoundingClientRect();
-//             const cardCenterX = cardRect.left + cardRect.width / 2;
-//             const cardCenterY = cardRect.top + cardRect.height / 2;
+        // Calculate delay based on distance from clicked card
+        let delay = 0;
+        if (cardStore.clickedCardPosition && card) {
+            const cardRect = card.getBoundingClientRect();
+            const cardCenterX = cardRect.left + cardRect.width / 2;
+            const cardCenterY = cardRect.top + cardRect.height / 2;
 
-//             const clickedPos = articleStore.clickedCardPosition;
-//             const distance = Math.sqrt(
-//                 Math.pow(cardCenterX - clickedPos.x, 2) +
-//                     Math.pow(cardCenterY - clickedPos.y, 2),
-//             );
+            const clickedPos = cardStore.clickedCardPosition;
+            const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
+            const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
 
-//             // Convert distance to delay with responsive calculation
-//             // Adjust base distance based on viewport size for better mobile experience
-//             const viewportWidth = window.innerWidth;
-//             const baseDistance = viewportWidth < 768 ? 400 : 800;
-//             const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+            const distance = Math.sqrt(
+                Math.pow(cardCenterX - clickedCardCenterX, 2) +
+                    Math.pow(cardCenterY - clickedCardCenterY, 2),
+            );
 
-//             const normalizedDistance = Math.min(distance / baseDistance, 2);
-//             delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
-//         }
+            // Convert distance to delay with responsive calculation
+            // Adjust base distance based on viewport size for better mobile experience
+            const viewportWidth = window.innerWidth;
+            const baseDistance = viewportWidth < 768 ? 400 : 800;
+            const maxDelay = viewportWidth < 768 ? 0.3 : 0.5;
+            const normalizedDistance = Math.min(distance / baseDistance, 2);
+            delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+        }
 
-//         // // Disable scrolling when animation starts
-//         // articleStore.setAnimating(true);
+        // Create GSAP timeline
+        let currentTimeline = gsap.timeline({
+            onComplete: () => {
+                // Disable scrolling when animation starts
+                articleStore.setAnimating(true);
 
-//         // Create GSAP timeline
-//         let currentTimeline = gsap.timeline({
-//             onComplete: () => {
-//                 articleStore.selectedArticleId = articleStore.clickedArticleId;
-//             },
-//         });
+                articleStore.selectedArticleId = cardStore.clickedCardId;
+            },
+        });
 
-//         // Animate card to fade out with distance-based delay
-//         if (card) {
-//             currentTimeline.to(card, {
-//                 opacity: 0,
-//                 duration: 0.5,
-//                 ease: "power3.out",
-//                 delay: delay,
-//             });
-//         }
-//     },
-// );
+        // Animate card to fade out with distance-based delay
+        currentTimeline.to(card, {
+            opacity: 0,
+            duration: 0.5,
+            ease: "power3.out",
+            delay: delay,
+        });
+    },
+);
 
 defineEmits(["click"]);
 </script>
@@ -135,4 +137,8 @@ defineEmits(["click"]);
     margin-top: 0;
     font-size: 1.2rem;
 }
+
+/*img {
+    opacity: 0.5;
+}*/
 </style>

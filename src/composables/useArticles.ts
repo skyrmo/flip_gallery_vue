@@ -8,11 +8,10 @@ export const useArticleStore = defineStore("article", () => {
     const selectedArticleId = ref<number | null>(null);
 
     // Simulate API call
-    async function fetchArticles(): Promise<void> {
+    async function fetchArticles() {
         const response = await fetch("/articles.json");
         const data = await response.json();
         articles.value = await data;
-        console.log(articles.value);
     }
 
     // Getters
@@ -22,19 +21,20 @@ export const useArticleStore = defineStore("article", () => {
         ),
     );
 
-    // // used to enable and disable scroll during animation
-    // function setAnimating(animating: boolean) {
-    //     if (animating) {
-    //         document.body.style.overflow = "hidden";
-    //     } else {
-    //         document.body.style.overflow = "";
-    //     }
-    // }
+    // used to enable and disable scroll during animation
+    function setAnimating(animating: boolean) {
+        if (animating) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+    }
 
     return {
         articles,
         selectedArticleId,
         selectedArticle,
+        setAnimating,
         fetchArticles,
     };
 });

@@ -11,5 +11,5 @@ export type Position = {
     left: number;
     width: number;
     height: number;
-    yScroll: number;
+    scrollY: number;
 } | null;

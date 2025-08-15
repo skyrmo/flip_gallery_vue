@@ -9,16 +9,13 @@ export const useCardStore = defineStore("card", () => {
 
     const clickedCardId = ref<number | null>(null);
     const cardClickYScroll = ref<number | null>(null);
-    // const clickedCardPosition = ref<{ x: number; y: number } | null>(null);
-    // const clickedCardPosition = ref<Position | null>();
-    // const clickedCardImagePosition = ref<Position | null>();
 
     function addCard(id: number, card: HTMLElement) {
         cards.value[id] = card;
     }
 
     function addImage(id: number, image: HTMLImageElement) {
-        cards.value[id] = image;
+        images.value[id] = image;
     }
 
     const clickedCard = computed(() => {
@@ -35,7 +32,7 @@ export const useCardStore = defineStore("card", () => {
             left: cardRect.left,
             width: cardRect.width,
             height: cardRect.height,
-            yScroll: cardClickYScroll.value,
+            scrollY: cardClickYScroll.value,
         } as Position;
     });
 
@@ -53,7 +50,7 @@ export const useCardStore = defineStore("card", () => {
             left: imageRect.left,
             width: imageRect.width,
             height: imageRect.height,
-            yScroll: cardClickYScroll.value,
+            scrollY: cardClickYScroll.value,
         } as Position;
     });
 

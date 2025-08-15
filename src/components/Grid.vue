@@ -19,14 +19,7 @@ const articleStore = useArticleStore();
 const cardStore = useCardStore();
 
 // // Handle click on article card
-function handleArticleClick(article: Article, event: MouseEvent) {
-    const card = cardStore.clickedCard;
-    const image = cardStore.clickedImage;
-
-    console.log(cardStore.clickedCardId);
-    cardStore.clickedCardId = article.id;
-    console.log(cardStore.clickedCardId);
-}
+function handleArticleClick(article: Article, event: MouseEvent) {}
 </script>
 
 <style scoped>
