@@ -82,12 +82,12 @@ watch(
             return;
         }
         // Start animation when article becomes available
-        startAnimation(newArticle);
+        startAnimation();
     },
     { immediate: true },
 );
 
-async function startAnimation(article: Article) {
+async function startAnimation() {
     await nextTick(); // important! do not remove.
 
     const articleImage = articleImageRef.value;

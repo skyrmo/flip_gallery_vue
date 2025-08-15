@@ -12,14 +12,14 @@
 <script setup lang="ts">
 import Card from "./Card.vue";
 import { useArticleStore } from "../composables/useArticles";
-import { useCardStore } from "../composables/useCards";
-import type { Article } from "../types/article";
+// import { useCardStore } from "../composables/useCards";
+// import type { Article } from "../types/article";
 
 const articleStore = useArticleStore();
-const cardStore = useCardStore();
+// const cardStore = useCardStore();
 
 // // Handle click on article card
-function handleArticleClick(article: Article, event: MouseEvent) {}
+function handleArticleClick() {}
 </script>
 
 <style scoped>
