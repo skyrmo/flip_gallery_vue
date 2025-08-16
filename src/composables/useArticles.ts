@@ -4,7 +4,6 @@ import type { Article } from "../types/article";
 
 export const useArticleStore = defineStore("article", () => {
     const articles = ref<Article[]>([]);
-
     const selectedArticleId = ref<number | null>(null);
 
     // Simulate API call
@@ -21,20 +20,10 @@ export const useArticleStore = defineStore("article", () => {
         ),
     );
 
-    // used to enable and disable scroll during animation
-    function setAnimating(animating: boolean) {
-        if (animating) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-    }
-
     return {
         articles,
         selectedArticleId,
         selectedArticle,
-        setAnimating,
         fetchArticles,
     };
 });

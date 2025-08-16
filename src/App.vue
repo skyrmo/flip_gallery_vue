@@ -1,7 +1,7 @@
 <template>
     <div class="app-container">
         <main>
-            <Grid v-show="articleStore.selectedArticleId === null" />
+            <Grid v-show="!articleStore.selectedArticleId" />
             <Article
                 v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"
@@ -16,11 +16,9 @@ import Article from "./components/Article.vue";
 
 import { onMounted } from "vue";
 import { useArticleStore } from "./composables/useArticles";
-// import { useCardStore } from "./composables/useCards";
 
 // load composable
 const articleStore = useArticleStore();
-// const cardStore = useCardStore();
 
 // fetch artcles from json file (emulates API call).
 onMounted(async () => {

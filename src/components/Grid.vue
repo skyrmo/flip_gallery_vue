@@ -4,22 +4,28 @@
             v-for="article in articleStore.articles"
             :key="article.id"
             :article="article"
-            @click="handleArticleClick"
+            @card-click="handleCardClick"
         />
     </div>
 </template>
 
 <script setup lang="ts">
 import Card from "./Card.vue";
+import { nextTick } from "vue";
 import { useArticleStore } from "../composables/useArticles";
-// import { useCardStore } from "../composables/useCards";
-// import type { Article } from "../types/article";
+import { getAnimationManager } from "../composables/useAnimations";
 
 const articleStore = useArticleStore();
-// const cardStore = useCardStore();
+const animationManager = getAnimationManager();
 
-// // Handle click on article card
-function handleArticleClick() {}
+async function handleCardClick(clickedCardId: number) {
+    await nextTick();
+
+    await animationManager.animateToArticle(clickedCardId);
+
+    // // Animation complete - show article
+    // articleStore.selectedArticleId = clickedCardId;
+}
 </script>
 
 <style scoped>

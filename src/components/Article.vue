@@ -49,11 +49,9 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import type { Article } from "../types/article";
-import { useArticleStore } from "../composables/useArticles";
-import { useCardStore } from "../composables/useCards";
-import { gsap } from "gsap";
+import { getAnimationManager } from "../composables/useAnimations";
 
-const props = defineProps<{
+const { article } = defineProps<{
     article: Article | null;
 }>();
 
@@ -65,241 +63,48 @@ const articleImageRef = ref<HTMLImageElement>();
 const articleBackgroundRef = ref<HTMLDivElement>();
 const articleWrapperRef = ref<HTMLElement>();
 
-let currentTimeline: gsap.core.Timeline | null = null;
-
-const articleStore = useArticleStore();
-const cardStore = useCardStore();
-
-let scrollY = 0;
+const animationManager = getAnimationManager();
 
 // Watch for article changes and trigger FLIP animation
 watch(
-    () => props.article,
-    (newArticle) => {
-        if (!cardStore.clickedCardPosition || !cardStore.clickedImagePosition) {
-            return;
-        }
+    () => article,
+    async () => {
+        if (article && animationManager.clickedCardInfo) {
+            await nextTick();
 
-        if (!newArticle) {
-            return;
+            // Gather all DOM elements
+            const articleElements = {
+                wrapper: articleWrapperRef.value!,
+                background: articleBackgroundRef.value!,
+                image: articleImageRef.value!,
+                content: contentRef.value!,
+                closeButton: closeButtonRef.value!,
+                title: titleRef.value!,
+            };
+
+            await animationManager.startFlipAnimation(articleElements);
         }
-        // Start animation when article becomes available
-        startAnimation();
     },
     { immediate: true },
 );
 
-async function startAnimation() {
-    await nextTick(); // important! do not remove.
-
-    const articleViewWrapper = articleWrapperRef.value;
-    const articleImage = articleImageRef.value;
-    const articleBackground = articleBackgroundRef.value;
-    const articleContent = contentRef.value;
-    const articleCloseButton = closeButtonRef.value;
-    const articleTitle = titleRef.value;
-
-    const cardImagePos = cardStore.clickedImagePosition;
-    const cardBGPos = cardStore.clickedCardPosition;
-
-    scrollY = window.scrollY;
-
-    if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
-        return;
-    }
-
-    // Position article container at current scroll level
-    gsap.set(articleViewWrapper!, {
-        y: scrollY,
-        position: "relative",
-        zIndex: 1000,
-    });
-
-    const articleBackgroundRect = articleBackground.getBoundingClientRect();
-    const articleImageRect = articleImage.getBoundingClientRect();
-
-    // Calculate scale factors (INVERT phase)
-    const scaleX = cardImagePos.width / articleImageRect.width;
-    const scaleY = cardImagePos.height / articleImageRect.height;
-    const translateX = cardImagePos.left - articleImageRect.left;
-    const translateY = cardImagePos.top - articleImageRect.top;
-
-    // Calculate scale factors (INVERT phase)
-    const bgScaleX = cardBGPos.width / articleBackgroundRect.width;
-    const bgScaleY = cardBGPos.height / articleBackgroundRect.height;
-    const bgTranslateX = cardBGPos.left - articleBackgroundRect.left;
-    const bgTranslateY = cardBGPos.top - articleBackgroundRect.top;
-
-    if (articleContent && articleCloseButton && articleTitle) {
-        gsap.set([articleContent, articleCloseButton, articleTitle], {
-            opacity: 0,
-        });
-    }
-
-    gsap.set(articleBackground, {
-        transformOrigin: "top left",
-        x: bgTranslateX,
-        y: bgTranslateY,
-        scaleX: bgScaleX,
-        scaleY: bgScaleY,
-    });
-
-    gsap.set(articleImage, {
-        transformOrigin: "top left",
-        x: translateX,
-        y: translateY,
-        scaleX: scaleX,
-        scaleY: scaleY,
-    });
-
-    // Create GSAP timeline
-    currentTimeline = gsap.timeline({
-        onComplete: () => {
-            // gsap.set([articleBackground, articleImage], { clearProps: "all" });
-            gsap.set(articleViewWrapper!, { y: 0 });
-            window.scrollTo(0, 0);
-            articleStore.setAnimating(false);
-        },
-    });
-
-    // Animate image to final position
-    currentTimeline
-        .to(articleBackground, {
-            x: 0,
-            y: 0,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 1,
-            ease: "power3.out",
-            delay: 0.6,
-        })
-        .to(
-            articleImage,
-            {
-                x: 0,
-                y: 0,
-                scaleX: 1,
-                scaleY: 1,
-                duration: 1,
-                ease: "power3.out",
-            },
-            "<",
-        )
-        .to(
-            [articleContent, articleCloseButton, articleTitle],
-            {
-                opacity: 1,
-                duration: 0.4,
-                ease: "power2.out",
-            },
-            "-=0.3",
-        );
-}
-
 // Close article and animate back
-function closeArticle() {
-    if (!cardStore.clickedCardPosition || !cardStore.clickedImagePosition) {
-        articleStore.setAnimating(false);
-        return;
-    }
+async function closeArticle() {
+    // Gather all DOM elements
+    const articleElements = {
+        wrapper: articleWrapperRef.value!,
+        background: articleBackgroundRef.value!,
+        image: articleImageRef.value!,
+        content: contentRef.value!,
+        closeButton: closeButtonRef.value!,
+        title: titleRef.value!,
+    };
 
-    const articleImage = articleImageRef.value;
-    const articleBackground = articleBackgroundRef.value;
-    const articleContent = contentRef.value;
-    const articleCloseButton = closeButtonRef.value;
-    const articleTitle = titleRef.value;
+    // // Animation manager handles reverse FLIP + cards back
+    // await animationManager.closeArticleWithFlip(articleElements);
 
-    const cardImagePos = cardStore.clickedImagePosition;
-    const cardBGPos = cardStore.clickedCardPosition;
-
-    if (!articleImage || !articleBackground || !cardImagePos || !cardBGPos) {
-        articleStore.setAnimating(false);
-        return;
-    }
-
-    // Kill any existing timeline
-    if (currentTimeline) {
-        currentTimeline.kill();
-    }
-
-    // Restore original scroll position before starting reverse animation
-    const articleViewWrapper = articleWrapperRef.value;
-    if (articleViewWrapper) {
-        gsap.set(articleViewWrapper, {
-            y: scrollY,
-        });
-        window.scrollTo(0, scrollY);
-    }
-
-    // Get current positions for reverse animation
-    const articleBackgroundRect = articleBackground.getBoundingClientRect();
-    const articleImageRect = articleImage.getBoundingClientRect();
-
-    // Calculate scale factors for reverse animation (back to card size)
-    const scaleX = cardImagePos.width / articleImageRect.width;
-    const scaleY = cardImagePos.height / articleImageRect.height;
-    const translateX = cardImagePos.left - articleImageRect.left;
-    const translateY = cardImagePos.top - articleImageRect.top;
-
-    // Calculate scale factors for background reverse animation
-    const bgScaleX = cardBGPos.width / articleBackgroundRect.width;
-    const bgScaleY = cardBGPos.height / articleBackgroundRect.height;
-    const bgTranslateX = cardBGPos.left - articleBackgroundRect.left;
-    const bgTranslateY = cardBGPos.top - articleBackgroundRect.top;
-
-    // Create reverse animation timeline
-    const reverseTimeline = gsap.timeline({
-        onComplete: () => {
-            // Clear all transforms before removing article
-            gsap.set([articleBackground, articleImage, articleViewWrapper], {
-                clearProps: "all",
-            });
-            gsap.set(articleViewWrapper!, { y: 0 });
-
-            articleStore.setAnimating(false);
-
-            // remove the article modal
-            articleStore.selectedArticleId = null;
-
-            cardStore.clickedCardId = null;
-
-            // Re-enable scrolling
-            articleStore.setAnimating(false);
-        },
-    });
-
-    // First fade out content elements
-    reverseTimeline
-        .to([articleContent, articleCloseButton, articleTitle], {
-            opacity: 0,
-            duration: 0.3,
-            ease: "power2.out",
-        })
-        // Then animate image and background back to card position
-        .to(
-            articleImage,
-            {
-                x: translateX,
-                y: translateY,
-                scaleX: scaleX,
-                scaleY: scaleY,
-                duration: 0.8,
-                ease: "power3.out",
-            },
-            "-=0.1",
-        )
-        .to(
-            articleBackground,
-            {
-                x: bgTranslateX,
-                y: bgTranslateY,
-                scaleX: bgScaleX,
-                scaleY: bgScaleY,
-                duration: 0.8,
-                ease: "power3.out",
-            },
-            "<",
-        );
+    // // Clear article after animations complete
+    // articleStore.selectedArticleId = null;
 }
 </script>
 
