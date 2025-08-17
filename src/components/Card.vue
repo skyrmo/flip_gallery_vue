@@ -36,19 +36,7 @@ onMounted(() => {
     const card = cardRef.value;
     const image = imageRef.value;
 
-    console.log(` Registering card ${article.id}:`, {
-        card: card,
-        image: image,
-        cardConnected: card?.isConnected,
-        imageConnected: image?.isConnected,
-    });
-
-    if (!card || !image) {
-        console.error(
-            `❌Failed to register card ${article.id} - missing elements`,
-        );
-        return;
-    }
+    if (!card || !image) return;
 
     animationManager.registerCard(article.id, card, image);
 });
@@ -64,6 +52,14 @@ onUnmounted(() => {
     cursor: pointer;
     background: #fee;
     padding: 1rem;
+    /* GPU optimization hints */
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Forces GPU layer */
+    transition: transform 0.2s ease; /* Smooth hover states */
+}
+.article-card:hover {
+    transform: translateZ(0) scale(1.02); /* Maintain GPU layer */
 }
 
 .article-card.is-selected {

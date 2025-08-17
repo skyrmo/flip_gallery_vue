@@ -1,3 +1,1 @@
-Card has click listner that calls handleCardClick()
-handleCardClick stops the scroll and assigns the value to clickedCardId
-Card watched for change in clickedCardId 
+You are a senior developer and you are assisting me, a junior developer, with a problem that i would like to fix. I would like to explore many options and point out anything that i might be missing. I would like to use modern vue practices, specifically composition api, and i would like to use clean code.

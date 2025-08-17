@@ -23,8 +23,8 @@ async function handleCardClick(clickedCardId: number) {
 
     await animationManager.animateToArticle(clickedCardId);
 
-    // // Animation complete - show article
-    // articleStore.selectedArticleId = clickedCardId;
+    // Animation complete - show article
+    articleStore.selectedArticleId = clickedCardId;
 }
 </script>
 

@@ -50,6 +50,7 @@
 import { ref, watch, nextTick } from "vue";
 import type { Article } from "../types/article";
 import { getAnimationManager } from "../composables/useAnimations";
+import { useArticleStore } from "../composables/useArticles";
 
 const { article } = defineProps<{
     article: Article | null;
@@ -64,6 +65,7 @@ const articleBackgroundRef = ref<HTMLDivElement>();
 const articleWrapperRef = ref<HTMLElement>();
 
 const animationManager = getAnimationManager();
+const articleStore = useArticleStore();
 
 // Watch for article changes and trigger FLIP animation
 watch(
@@ -82,7 +84,7 @@ watch(
                 title: titleRef.value!,
             };
 
-            await animationManager.startFlipAnimation(articleElements);
+            await animationManager.startFlipAnimationIn(articleElements);
         }
     },
     { immediate: true },
@@ -100,11 +102,14 @@ async function closeArticle() {
         title: titleRef.value!,
     };
 
-    // // Animation manager handles reverse FLIP + cards back
-    // await animationManager.closeArticleWithFlip(articleElements);
+    // Animation manager handles reverse FLIP + cards back
+    await animationManager.startFlipAnimationOut(articleElements);
 
-    // // Clear article after animations complete
-    // articleStore.selectedArticleId = null;
+    // Clear article after animations complete
+    articleStore.selectedArticleId = null;
+
+    // Second: Animate other cards back in
+    await animationManager.animateCardsIn();
 }
 </script>
 
@@ -151,6 +156,7 @@ async function closeArticle() {
 
 .image {
     height: 100%;
+    will-change: transform, width, height, top, left;
 }
 
 .title__wrapper {
