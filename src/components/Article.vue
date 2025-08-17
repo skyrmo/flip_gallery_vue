@@ -1,5 +1,9 @@
 <template>
-    <div class="article__wrapper" ref="articleWrapperRef">
+    <div
+        class="article__wrapper"
+        ref="articleWrapperRef"
+        :class="{ 'is-hidden': !isVisible }"
+    >
         <div class="background" ref="articleBackgroundRef"></div>
         <div class="content__wrapper">
             <button
@@ -54,6 +58,7 @@ import { useArticleStore } from "../composables/useArticles";
 
 const { article } = defineProps<{
     article: Article | null;
+    isVisible: boolean;
 }>();
 
 // Refs for DOM elements
@@ -65,17 +70,20 @@ const articleBackgroundRef = ref<HTMLDivElement>();
 const articleWrapperRef = ref<HTMLElement>();
 
 const animationManager = getAnimationManager();
-const articleStore = useArticleStore();
+// const articleStore = useArticleStore();
 
 // Watch for article changes and trigger FLIP animation
 watch(
     () => article,
     async () => {
-        if (article && animationManager.clickedCardInfo) {
+        if (article) {
             await nextTick();
+
+            if (!article) return;
 
             // Gather all DOM elements
             const articleElements = {
+                id: article.id,
                 wrapper: articleWrapperRef.value!,
                 background: articleBackgroundRef.value!,
                 image: articleImageRef.value!,
@@ -84,40 +92,27 @@ watch(
                 title: titleRef.value!,
             };
 
-            await animationManager.startFlipAnimationIn(articleElements);
+            await animationManager.animateOpen(articleElements);
         }
     },
     { immediate: true },
 );
-
-// Close article and animate back
-async function closeArticle() {
-    // Gather all DOM elements
-    const articleElements = {
-        wrapper: articleWrapperRef.value!,
-        background: articleBackgroundRef.value!,
-        image: articleImageRef.value!,
-        content: contentRef.value!,
-        closeButton: closeButtonRef.value!,
-        title: titleRef.value!,
-    };
-
-    // Animation manager handles reverse FLIP + cards back
-    await animationManager.startFlipAnimationOut(articleElements);
-
-    // Clear article after animations complete
-    articleStore.selectedArticleId = null;
-
-    // Second: Animate other cards back in
-    await animationManager.animateCardsIn();
-}
 </script>
 
 <style scoped>
 .article__wrapper {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     min-height: 100vh;
+    z-index: 1000;
+    /* Remove the visibility/height control from here */
+}
+
+.article__wrapper.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .background {
@@ -127,7 +122,7 @@ async function closeArticle() {
     width: 100%;
     height: 100%;
     z-index: 10;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 1);
     will-change: transform, width, height, top, left;
 }
 

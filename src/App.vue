@@ -1,10 +1,10 @@
 <template>
     <div class="app-container">
         <main>
-            <Grid v-show="!articleStore.selectedArticleId" />
+            <Grid v-show="cardsVisible" />
             <Article
-                v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"
+                :is-visible="articleVisible"
             />
         </main>
     </div>
@@ -16,9 +16,11 @@ import Article from "./components/Article.vue";
 
 import { onMounted } from "vue";
 import { useArticleStore } from "./composables/useArticles";
+import { getAnimationManager } from "./composables/useAnimations";
 
 // load composable
 const articleStore = useArticleStore();
+const { articleVisible, cardsVisible } = getAnimationManager();
 
 // fetch artcles from json file (emulates API call).
 onMounted(async () => {

@@ -35,9 +35,7 @@ const imageRef = ref<HTMLImageElement>();
 onMounted(() => {
     const card = cardRef.value;
     const image = imageRef.value;
-
     if (!card || !image) return;
-
     animationManager.registerCard(article.id, card, image);
 });
 

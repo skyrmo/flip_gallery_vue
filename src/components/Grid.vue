@@ -13,15 +13,13 @@
 import Card from "./Card.vue";
 import { nextTick } from "vue";
 import { useArticleStore } from "../composables/useArticles";
-import { getAnimationManager } from "../composables/useAnimations";
+// import { getAnimationManager } from "../composables/useAnimations";
 
 const articleStore = useArticleStore();
-const animationManager = getAnimationManager();
+// const animationManager = getAnimationManager();
 
 async function handleCardClick(clickedCardId: number) {
     await nextTick();
-
-    await animationManager.animateToArticle(clickedCardId);
 
     // Animation complete - show article
     articleStore.selectedArticleId = clickedCardId;
