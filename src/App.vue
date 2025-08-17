@@ -1,10 +1,10 @@
 <template>
     <div class="app-container">
         <main>
-            <Grid v-show="!articleStore.selectedArticleId" />
+            <Grid />
             <Article
-                v-show="articleStore.selectedArticleId"
                 :article="articleStore.selectedArticle || null"
+                :is-visible="!!articleStore.selectedArticle"
             />
         </main>
     </div>
@@ -14,15 +14,21 @@
 import Grid from "./components/Grid.vue";
 import Article from "./components/Article.vue";
 
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { useArticleStore } from "./composables/useArticles";
+import { getAnimationManager } from "./composables/useAnimations";
 
 // load composable
 const articleStore = useArticleStore();
+const animationManager = getAnimationManager();
 
 // fetch artcles from json file (emulates API call).
 onMounted(async () => {
     await articleStore.fetchArticles();
+});
+// Cleanup on unmount
+onUnmounted(() => {
+    animationManager.cleanup();
 });
 </script>
 

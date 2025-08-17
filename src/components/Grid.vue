@@ -21,10 +21,10 @@ const animationManager = getAnimationManager();
 async function handleCardClick(clickedCardId: number) {
     await nextTick();
 
-    await animationManager.animateToArticle(clickedCardId);
-
     // Animation complete - show article
     articleStore.selectedArticleId = clickedCardId;
+
+    await animationManager.animateToArticle(clickedCardId);
 }
 </script>
 
