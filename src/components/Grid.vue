@@ -1,8 +1,8 @@
 <template>
     <div class="article-grid">
         <Card
-            v-for="article in articleStore.articles"
-            :key="article.id"
+            v-for="[key, article] in articles"
+            :key="key"
             :article="article"
             @card-click="handleCardClick"
         />
@@ -12,17 +12,14 @@
 <script setup lang="ts">
 import Card from "./Card.vue";
 import { nextTick } from "vue";
-import { useArticleStore } from "../composables/useArticles";
-// import { getAnimationManager } from "../composables/useAnimations";
+import { getAppStateManager } from "../composables/useAppState";
 
-const articleStore = useArticleStore();
-// const animationManager = getAnimationManager();
+let { articles, selectedArticleId } = getAppStateManager();
 
 async function handleCardClick(clickedCardId: number) {
     await nextTick();
 
-    // Animation complete - show article
-    articleStore.selectedArticleId = clickedCardId;
+    selectedArticleId.value = clickedCardId;
 }
 </script>
 

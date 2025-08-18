@@ -19,28 +19,38 @@
 </template>
 
 <script setup lang="ts">
-import type { Article } from "../types/article";
+import type { Article } from "../types/appTypes";
 import { defineProps, ref, onMounted, onUnmounted } from "vue";
-import { getAnimationManager } from "../composables/useAnimations";
+import { getAppStateManager } from "../composables/useAppState";
 
 const { article } = defineProps<{
     article: Article;
 }>();
 
-const animationManager = getAnimationManager();
+const { registerCard } = getAppStateManager();
 
 const cardRef = ref<HTMLImageElement>();
 const imageRef = ref<HTMLImageElement>();
 
 onMounted(() => {
-    const card = cardRef.value;
-    const image = imageRef.value;
-    if (!card || !image) return;
-    animationManager.registerCard(article.id, card, image);
+    const cardEl = cardRef.value;
+    const imageEl = imageRef.value;
+
+    if (!cardEl || !imageEl || !article.id) return;
+
+    const card = {
+        id: article.id,
+        elements: {
+            background: cardEl,
+            image: imageEl,
+        },
+    };
+
+    registerCard(article.id, card);
 });
 
 onUnmounted(() => {
-    animationManager.unregisterCard(article.id);
+    // animationManager.unregisterCard(article.id);
 });
 </script>
 

@@ -2,9 +2,9 @@
     <div class="app-container">
         <main>
             <Grid v-show="cardsVisible" />
-            <Article
-                :article="articleStore.selectedArticle || null"
-                :is-visible="articleVisible"
+            <Modal
+                :article="selectedArticle || null"
+                :is-visible="modalVisible"
             />
         </main>
     </div>
@@ -12,19 +12,17 @@
 
 <script setup lang="ts">
 import Grid from "./components/Grid.vue";
-import Article from "./components/Article.vue";
+import Modal from "./components/Modal.vue";
 
 import { onMounted } from "vue";
-import { useArticleStore } from "./composables/useArticles";
-import { getAnimationManager } from "./composables/useAnimations";
+import { getAppStateManager } from "./composables/useAppState";
 
-// load composable
-const articleStore = useArticleStore();
-const { articleVisible, cardsVisible } = getAnimationManager();
+const { fetchArticles, cardsVisible, selectedArticle, modalVisible } =
+    getAppStateManager();
 
 // fetch artcles from json file (emulates API call).
 onMounted(async () => {
-    await articleStore.fetchArticles();
+    await fetchArticles();
 });
 </script>
 

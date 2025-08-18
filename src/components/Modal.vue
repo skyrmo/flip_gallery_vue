@@ -1,10 +1,10 @@
 <template>
     <div
-        class="article__wrapper"
-        ref="articleWrapperRef"
+        class="modal__wrapper"
+        ref="modalWrapperRef"
         :class="{ 'is-hidden': !isVisible }"
     >
-        <div class="background" ref="articleBackgroundRef"></div>
+        <div class="background" ref="modalBackgroundRef"></div>
         <div class="content__wrapper">
             <button
                 class="button__close"
@@ -18,8 +18,8 @@
                 <div class="image__wrapper">
                     <img
                         :src="article?.image"
-                        alt="Article Image"
-                        ref="articleImageRef"
+                        alt="Modal Image"
+                        ref="modalImageRef"
                         class="image"
                     />
                 </div>
@@ -36,13 +36,13 @@
                         <p
                             v-for="(paragraph, index) in article.content"
                             :key="index"
-                            class="article-paragraph"
+                            class="modal-paragraph"
                         >
                             {{ paragraph }}
                         </p>
                     </template>
                     <template v-else>
-                        <p class="article-paragraph">{{ article?.content }}</p>
+                        <p class="modal-paragraph">{{ article?.content }}</p>
                     </template>
                 </div>
             </div>
@@ -52,9 +52,9 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import type { Article } from "../types/article";
+import type { Article } from "../types/appTypes";
 import { getAnimationManager } from "../composables/useAnimations";
-import { useArticleStore } from "../composables/useArticles";
+import { getAppStateManager } from "../composables/useAppState";
 
 const { article } = defineProps<{
     article: Article | null;
@@ -65,42 +65,67 @@ const { article } = defineProps<{
 const contentRef = ref<HTMLElement>();
 const titleRef = ref<HTMLElement>();
 const closeButtonRef = ref<HTMLElement>();
-const articleImageRef = ref<HTMLImageElement>();
-const articleBackgroundRef = ref<HTMLDivElement>();
-const articleWrapperRef = ref<HTMLElement>();
+const modalImageRef = ref<HTMLImageElement>();
+const modalBackgroundRef = ref<HTMLDivElement>();
+const modalWrapperRef = ref<HTMLElement>();
 
-const animationManager = getAnimationManager();
-// const articleStore = useArticleStore();
+let { animateOpen } = getAnimationManager();
+let { modalElements, modalVisible } = getAppStateManager();
 
 // Watch for article changes and trigger FLIP animation
 watch(
     () => article,
     async () => {
-        if (article) {
-            await nextTick();
-
-            if (!article) return;
-
-            // Gather all DOM elements
-            const articleElements = {
-                id: article.id,
-                wrapper: articleWrapperRef.value!,
-                background: articleBackgroundRef.value!,
-                image: articleImageRef.value!,
-                content: contentRef.value!,
-                closeButton: closeButtonRef.value!,
-                title: titleRef.value!,
-            };
-
-            await animationManager.animateOpen(articleElements);
+        if (!article) {
+            return;
         }
+
+        await nextTick();
+
+        // Gather all DOM elements
+        modalElements.value = {
+            id: article.id,
+            wrapper: modalWrapperRef.value!,
+            background: modalBackgroundRef.value!,
+            image: modalImageRef.value!,
+            content: contentRef.value!,
+            closeButton: closeButtonRef.value!,
+            title: titleRef.value!,
+        };
+
+        // modalVisible.value = true;
+
+        await animateOpen();
     },
     { immediate: true },
 );
+
+async function closeArticle() {
+    await nextTick();
+
+    if (!article) return;
+
+    modalVisible.value = false;
+
+    // // Gather all DOM elements
+    // modalElements = {
+    //     id: article.id,
+    //     wrapper: modalWrapperRef.value!,
+    //     background: modalBackgroundRef.value!,
+    //     image: modalImageRef.value!,
+    //     content: contentRef.value!,
+    //     closeButton: closeButtonRef.value!,
+    //     title: titleRef.value!,
+    // };
+
+    // await animateClose(articleElements);
+
+    // modalElements = null;
+}
 </script>
 
 <style scoped>
-.article__wrapper {
+.modal__wrapper {
     position: absolute;
     top: 0;
     left: 0;
@@ -110,7 +135,7 @@ watch(
     /* Remove the visibility/height control from here */
 }
 
-.article__wrapper.is-hidden {
+.modal__wrapper.is-hidden {
     visibility: hidden;
     pointer-events: none;
 }
