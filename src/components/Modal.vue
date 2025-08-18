@@ -1,6 +1,10 @@
 <template>
-    <div class="article__wrapper" ref="articleWrapperRef">
-        <div class="background" ref="articleBackgroundRef"></div>
+    <div
+        class="modal__wrapper"
+        ref="modalWrapperRef"
+        :class="{ 'is-hidden': !isVisible }"
+    >
+        <div class="background" ref="modalBackgroundRef"></div>
         <div class="content__wrapper">
             <button
                 class="button__close"
@@ -14,8 +18,8 @@
                 <div class="image__wrapper">
                     <img
                         :src="article?.image"
-                        alt="Article Image"
-                        ref="articleImageRef"
+                        alt="Modal Image"
+                        ref="modalImageRef"
                         class="image"
                     />
                 </div>
@@ -32,13 +36,13 @@
                         <p
                             v-for="(paragraph, index) in article.content"
                             :key="index"
-                            class="article-paragraph"
+                            class="modal-paragraph"
                         >
                             {{ paragraph }}
                         </p>
                     </template>
                     <template v-else>
-                        <p class="article-paragraph">{{ article?.content }}</p>
+                        <p class="modal-paragraph">{{ article?.content }}</p>
                     </template>
                 </div>
             </div>
@@ -48,76 +52,94 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import type { Article } from "../types/article";
+import type { Article } from "../types/appTypes";
 import { getAnimationManager } from "../composables/useAnimations";
-import { useArticleStore } from "../composables/useArticles";
+import { getAppStateManager } from "../composables/useAppState";
 
 const { article } = defineProps<{
     article: Article | null;
+    isVisible: boolean;
 }>();
 
 // Refs for DOM elements
 const contentRef = ref<HTMLElement>();
 const titleRef = ref<HTMLElement>();
 const closeButtonRef = ref<HTMLElement>();
-const articleImageRef = ref<HTMLImageElement>();
-const articleBackgroundRef = ref<HTMLDivElement>();
-const articleWrapperRef = ref<HTMLElement>();
+const modalImageRef = ref<HTMLImageElement>();
+const modalBackgroundRef = ref<HTMLDivElement>();
+const modalWrapperRef = ref<HTMLElement>();
 
-const animationManager = getAnimationManager();
-const articleStore = useArticleStore();
+let { animateOpen, animateClose } = getAnimationManager();
+let { modalElements, modalVisible } = getAppStateManager();
 
 // Watch for article changes and trigger FLIP animation
 watch(
     () => article,
     async () => {
-        if (article && animationManager.clickedCardInfo) {
-            await nextTick();
-
-            // Gather all DOM elements
-            const articleElements = {
-                wrapper: articleWrapperRef.value!,
-                background: articleBackgroundRef.value!,
-                image: articleImageRef.value!,
-                content: contentRef.value!,
-                closeButton: closeButtonRef.value!,
-                title: titleRef.value!,
-            };
-
-            await animationManager.startFlipAnimationIn(articleElements);
+        if (!article) {
+            return;
         }
+
+        await nextTick();
+
+        // Gather all DOM elements
+        modalElements.value = {
+            id: article.id,
+            wrapper: modalWrapperRef.value!,
+            background: modalBackgroundRef.value!,
+            image: modalImageRef.value!,
+            content: contentRef.value!,
+            closeButton: closeButtonRef.value!,
+            title: titleRef.value!,
+        };
+
+        // modalVisible.value = true;
+
+        await animateOpen();
     },
     { immediate: true },
 );
 
-// Close article and animate back
 async function closeArticle() {
-    // Gather all DOM elements
-    const articleElements = {
-        wrapper: articleWrapperRef.value!,
-        background: articleBackgroundRef.value!,
-        image: articleImageRef.value!,
-        content: contentRef.value!,
-        closeButton: closeButtonRef.value!,
-        title: titleRef.value!,
-    };
+    await nextTick();
 
-    // Animation manager handles reverse FLIP + cards back
-    await animationManager.startFlipAnimationOut(articleElements);
+    await animateClose();
 
-    // Clear article after animations complete
-    articleStore.selectedArticleId = null;
+    // if (!article) return;
 
-    // Second: Animate other cards back in
-    await animationManager.animateCardsIn();
+    // modalVisible.value = false;
+
+    // // Gather all DOM elements
+    // modalElements = {
+    //     id: article.id,
+    //     wrapper: modalWrapperRef.value!,
+    //     background: modalBackgroundRef.value!,
+    //     image: modalImageRef.value!,
+    //     content: contentRef.value!,
+    //     closeButton: closeButtonRef.value!,
+    //     title: titleRef.value!,
+    // };
+
+    // await animateClose(articleElements);
+
+    // modalElements = null;
 }
 </script>
 
 <style scoped>
-.article__wrapper {
-    position: relative;
+.modal__wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     min-height: 100vh;
+    z-index: 1000;
+    /* Remove the visibility/height control from here */
+}
+
+.modal__wrapper.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .background {
@@ -127,7 +149,7 @@ async function closeArticle() {
     width: 100%;
     height: 100%;
     z-index: 10;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 1);
     will-change: transform, width, height, top, left;
 }
 
