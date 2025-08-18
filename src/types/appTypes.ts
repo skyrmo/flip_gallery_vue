@@ -32,3 +32,15 @@ export interface ModalElements {
     closeButton: HTMLElement;
     title: HTMLElement;
 }
+
+export interface FlipTransform {
+    scaleX: number;
+    scaleY: number;
+    translateX: number;
+    translateY: number;
+}
+
+export interface FlipTransforms {
+    imageTransforms: FlipTransform;
+    backgroundTransforms: FlipTransform;
+}

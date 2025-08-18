@@ -1,6 +1,10 @@
 import { ref, computed } from "vue";
 import { gsap } from "gsap";
-import type { CardPosition } from "../types/appTypes";
+import type {
+    CardPosition,
+    FlipTransforms,
+    ModalElements,
+} from "../types/appTypes";
 import { ANIMATION_CONFIG } from "../config/animations";
 import { getAppStateManager } from "./useAppState";
 
@@ -10,6 +14,24 @@ const useAnimationManager = () => {
     const cardPositions = ref<Map<number, CardPosition>>(new Map());
     const activeTimelines = ref<Set<gsap.core.Timeline>>(new Set());
 
+    // Computed Properties
+    const cardsToAnimate = computed(() => {
+        const cardsArray = Array.from(appState.cards.value.values());
+
+        return cardsArray.filter((card) => {
+            return card.id !== appState.selectedArticleId.value;
+        });
+    });
+
+    const clickedCardPosition = computed(() => {
+        const id = appState.selectedArticleId.value;
+
+        if (!id) return null;
+
+        return cardPositions.value.get(id);
+    });
+
+    // Helper Methods
     async function updateCardsPositionState() {
         const cards = appState.cards.value;
 
@@ -43,24 +65,8 @@ const useAnimationManager = () => {
         }
     }
 
-    const cardsToAnimate = computed(() => {
-        const cardsArray = Array.from(appState.cards.value.values());
-
-        return cardsArray.filter((card) => {
-            return card.id !== appState.selectedArticleId.value;
-        });
-    });
-
-    const clickedCardPosition = computed(() => {
-        const id = appState.selectedArticleId.value;
-
-        if (!id) return null;
-
-        return cardPositions.value.get(id);
-    });
-
     // Main animation setup and coordination
-    function createTimeline(modalElements: any) {
+    function createTimeline(modalElements: ModalElements) {
         // Position modal wrapper to account for scroll
         gsap.set(modalElements.wrapper, {
             y: window.scrollY,
@@ -90,7 +96,7 @@ const useAnimationManager = () => {
                     duration: ANIMATION_CONFIG.DURATIONS.cardFadeOut,
                     ease: ANIMATION_CONFIG.EASING.cardFadeOut,
                 },
-                calculateAnimationDelay(card.elements.background),
+                calculateAnimationOutDelay(card.elements.background),
             );
         });
     }
@@ -98,35 +104,37 @@ const useAnimationManager = () => {
     // Calculate FLIP transform values
     function calculateFlipTransforms(
         clickedCardPos: CardPosition,
-        modalElements: any,
-    ) {
+        modalElements: ModalElements,
+    ): FlipTransforms {
         const cardBGPos = clickedCardPos.backgroundPosition;
         const cardImagePos = clickedCardPos.imagePosition;
 
-        const articleBackgroundRect =
-            modalElements.background.getBoundingClientRect();
-        const articleImageRect = modalElements.image.getBoundingClientRect();
+        const modalBGPos = modalElements.background.getBoundingClientRect();
+        const modalImagePos = modalElements.image.getBoundingClientRect();
 
         // Image transforms
         const imageTransforms = {
-            scaleX: cardImagePos.width / articleImageRect.width,
-            scaleY: cardImagePos.height / articleImageRect.height,
-            translateX: cardImagePos.left - articleImageRect.left,
-            translateY: cardImagePos.top - articleImageRect.top,
+            scaleX: cardImagePos.width / modalImagePos.width,
+            scaleY: cardImagePos.height / modalImagePos.height,
+            translateX: cardImagePos.left - modalImagePos.left,
+            translateY: cardImagePos.top - modalImagePos.top,
         };
 
         // Background transforms
         const backgroundTransforms = {
-            scaleX: cardBGPos.width / articleBackgroundRect.width,
-            scaleY: cardBGPos.height / articleBackgroundRect.height,
-            translateX: cardBGPos.left - articleBackgroundRect.left,
-            translateY: cardBGPos.top - articleBackgroundRect.top,
+            scaleX: cardBGPos.width / modalBGPos.width,
+            scaleY: cardBGPos.height / modalBGPos.height,
+            translateX: cardBGPos.left - modalBGPos.left,
+            translateY: cardBGPos.top - modalBGPos.top,
         };
 
         return { imageTransforms, backgroundTransforms };
     }
 
-    function setInitialFlipPositions(modalElements, transforms) {
+    function setInitialFlipPositions(
+        modalElements: ModalElements,
+        transforms: FlipTransforms,
+    ) {
         const { imageTransforms, backgroundTransforms } = transforms;
 
         // Hide content initially
@@ -158,7 +166,10 @@ const useAnimationManager = () => {
         });
     }
 
-    function animateModalToFinalPosition(timeline, modalElements) {
+    function animateModalToFinalPosition(
+        timeline: gsap.core.Timeline,
+        modalElements: ModalElements,
+    ) {
         // Animate background to final position
         timeline.to(
             modalElements.background,
@@ -204,190 +215,161 @@ const useAnimationManager = () => {
     }
 
     async function animateOpen() {
-        return new Promise<void>(async (resolve) => {
-            // update the positions for the cards
-            await updateCardsPositionState();
+        // update the positions for the cards
+        await updateCardsPositionState();
 
-            // store the elements that make up the modal
-            const modalElements = appState.modalElements.value;
-            const articleId = appState.selectedArticleId.value;
+        // store the elements that make up the modal
+        const modalElements = appState.modalElements.value;
 
-            // if (!modalElements || !articleId) {
-            //     throw new Error(
-            //         "Tried to animate out, but the model elements or article id were not availaible.",
-            //     );
-            //     return;
-            // }
+        if (!modalElements || !clickedCardPosition.value) {
+            throw new Error("Something went wrong in with ModalElements.");
+            return;
+        }
 
-            // Get clicked card element info (via computed)
-            const clickedCard = appState.clickedCard;
+        // gsap timeline for all open modal animations.
+        const timeline = createTimeline(modalElements);
 
-            // if (!clickedCard) {
-            //     throw new Error(`Clicked card ${articleId} not found`);
-            //     return;
-            // }
+        //
+        animateCardsOut(timeline);
 
-            const timeline = createTimeline(modalElements);
+        // calculate the transforms requireed to change the modal elements
+        const transforms = calculateFlipTransforms(
+            clickedCardPosition.value,
+            modalElements,
+        );
 
-            animateCardsOut(timeline);
+        // modal elements changed to mirror those of clicked card
+        setInitialFlipPositions(modalElements, transforms);
 
-            const transforms = calculateFlipTransforms(
-                clickedCardPosition.value!,
-                modalElements,
-            );
+        // modal is now visible
+        appState.modalVisible.value = true;
 
-            setInitialFlipPositions(modalElements, transforms);
-
-            appState.modalVisible.value = true;
-
-            animateModalToFinalPosition(timeline, modalElements);
-        });
+        // modal elements animate to their 'final' position.
+        animateModalToFinalPosition(timeline, modalElements);
     }
 
-    async function animateClose(articleElements: ArticleElements) {
-        if (!articleElements || !appState.clickedCard) return;
+    async function animateClose() {
+        // store the elements that make up the modal
+        const modalElements = appState.modalElements.value;
 
-        return new Promise<void>(async (resolve) => {
-            const {
-                wrapper: articleViewWrapper,
-                background: articleBackground,
-                image: articleImage,
-                content: articleContent,
-                closeButton: articleCloseButton,
-                title: articleTitle,
-            } = articleElements;
+        const clickedCardPos = clickedCardPosition.value;
 
-            gsap.set(articleViewWrapper, {
-                y: clickedCardInfo.value?.scrollY || 0,
-            });
+        if (!modalElements || !clickedCardPos) return;
 
-            window.scrollTo(0, clickedCardInfo.value?.scrollY || 0);
+        gsap.set(modalElements?.wrapper, {
+            y: clickedCardPos.scrollY || 0,
+        });
 
-            // articleVisible.value = false;
-            cardsVisible.value = true;
+        window.scrollTo(0, clickedCardPos.scrollY || 0);
 
-            const clickedCardId = articleElements.id;
+        // Get clicked card info
+        const clickedCard = appState.clickedCard.value;
+        if (!clickedCard) {
+            throw new Error(`clicked card not found`);
+        }
 
-            // Get clicked card info
-            const clickedCard = cards.value.get(clickedCardId);
-            if (!clickedCard) {
-                throw new Error(`Card ${clickedCardId} not found`);
-            }
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                appState.modalVisible.value = false;
 
-            // Step 1: Collect all cards except the clicked one
-            const cardsToAnimate = Array.from(cards.value.entries())
-                .filter(([id]) => id !== clickedCardId)
-                .map(([id, registration]) => ({ id, ...registration }));
-
-            const articleCloseTimeline = gsap.timeline({
-                onComplete: () => {
-                    articleVisible.value = false;
-
-                    // Clear all transforms
-                    gsap.set(
-                        [articleBackground, articleImage, articleViewWrapper],
-                        {
-                            clearProps: "all",
-                        },
-                    );
-
-                    activeTimelines.value.delete(articleCloseTimeline);
-                    resolve();
-                },
-            });
-
-            activeTimelines.value.add(articleCloseTimeline);
-
-            gsap.set(articleViewWrapper, {
-                y: clickedCardInfo.value.scrollY,
-            });
-
-            const cardImagePos = clickedCardInfo.value.imagePosition;
-            const cardBGPos = clickedCardInfo.value.cardPosition;
-
-            const articleBackgroundRect =
-                articleBackground.getBoundingClientRect();
-            const articleImageRect = articleImage.getBoundingClientRect();
-
-            // Calculate scale factors (INVERT phase)
-            const scaleX = cardImagePos.width / articleImageRect.width;
-            const scaleY = cardImagePos.height / articleImageRect.height;
-            const translateX = cardImagePos.left - articleImageRect.left;
-            const translateY = cardImagePos.top - articleImageRect.top;
-
-            // Calculate background scale factors (INVERT phase)
-            const bgScaleX = cardBGPos.width / articleBackgroundRect.width;
-            const bgScaleY = cardBGPos.height / articleBackgroundRect.height;
-            const bgTranslateX = cardBGPos.left - articleBackgroundRect.left;
-            const bgTranslateY = cardBGPos.top - articleBackgroundRect.top;
-
-            // Animate back to card position
-            articleCloseTimeline
-                .to([articleContent, articleCloseButton, articleTitle], {
-                    opacity: 0,
-                    duration: 0.2,
-                    ease: "power2.out",
-                })
-                .to(
-                    articleImage,
+                // Clear all transforms
+                gsap.set(
+                    [
+                        modalElements.background,
+                        modalElements.image,
+                        modalElements.wrapper,
+                    ],
                     {
-                        x: translateX,
-                        y: translateY,
-                        scaleX: scaleX,
-                        scaleY: scaleY,
-                        duration: 0.8,
-                        ease: "power3.out",
+                        clearProps: "all",
                     },
-                    "-=0.2",
-                )
-                .to(
-                    articleBackground,
-                    {
-                        x: bgTranslateX,
-                        y: bgTranslateY,
-                        scaleX: bgScaleX,
-                        scaleY: bgScaleY,
-                        duration: 0.8,
-                        ease: "power3.out",
-                    },
-                    "<",
                 );
 
-            const cardsInTimeline = gsap.timeline({
-                onComplete: () => {
-                    activeTimelines.value.delete(cardsInTimeline);
-                    resolve();
+                // activeTimelines.value.delete(timeline);
+            },
+        });
+
+        activeTimelines.value.add(timeline);
+
+        gsap.set(modalElements.wrapper, {
+            y: clickedCardPos.scrollY,
+        });
+
+        const cardImagePos = clickedCardPos.imagePosition;
+        const cardBGPos = clickedCardPos.backgroundPosition;
+
+        const modalBGPos = modalElements.background.getBoundingClientRect();
+        const modalImagePos = modalElements.image.getBoundingClientRect();
+
+        // Calculate scale factors (INVERT phase)
+        const scaleX = cardImagePos.width / modalImagePos.width;
+        const scaleY = cardImagePos.height / modalImagePos.height;
+        const translateX = cardImagePos.left - modalImagePos.left;
+        const translateY = cardImagePos.top - modalImagePos.top;
+
+        // Calculate background scale factors (INVERT phase)
+        const bgScaleX = cardBGPos.width / modalBGPos.width;
+        const bgScaleY = cardBGPos.height / modalBGPos.height;
+        const bgTranslateX = cardBGPos.left - modalBGPos.left;
+        const bgTranslateY = cardBGPos.top - modalBGPos.top;
+
+        // Animate back to card position
+        timeline
+            .to(
+                [
+                    modalElements.content,
+                    modalElements.closeButton,
+                    modalElements.title,
+                ],
+                {
+                    opacity: 0,
+                    duration: 0.4,
+                    ease: "sine.out",
                 },
-            });
+            )
+            .to(
+                modalElements.image,
+                {
+                    x: translateX,
+                    y: translateY,
+                    scaleX: scaleX,
+                    scaleY: scaleY,
+                    duration: 0.8,
+                    ease: "expo.inOut",
+                },
+                "-=0.2",
+            )
+            .to(
+                modalElements.background,
+                {
+                    x: bgTranslateX,
+                    y: bgTranslateY,
+                    scaleX: bgScaleX,
+                    scaleY: bgScaleY,
+                    duration: 0.8,
+                    ease: "expo.inOut",
+                },
+                "<",
+            );
 
-            activeTimelines.value.add(cardsInTimeline);
+        appState.cardsVisible.value = true;
 
-            // Add each card to the timeline with its calculated delay
-            // cardsToAnimateIn.forEach((card) => {
-            //     // Reset initial state
-            //     gsap.set(card.element, {
-            //         opacity: 0,
-            //         scale: 0.98,
-            //     });
+        // Add each card to the timeline with its calculated delay
+        cardsToAnimate.value.forEach((card) => {
+            timeline.to(
+                card.elements.background,
+                {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.6,
+                    ease: "sine.out",
+                },
 
-            //     cardsInTimeline.to(
-            //         card.element,
-            //         {
-            //             opacity: 1,
-            //             scale: 1,
-            //             duration: 0.8,
-            //             ease: "power2.out",
-            //         },
-            //         calculateAnimationDelay(card.element, true),
-            //     );
-            // });
+                calculateAnimationInDelay(card.id) + 0.7,
+            );
         });
     }
 
-    function calculateAnimationDelay(
-        card: HTMLElement,
-        reverse: boolean = false,
-    ): number {
+    function calculateAnimationOutDelay(card: HTMLElement): number {
         let delay = 0;
 
         const clickedCard = appState.clickedCard;
@@ -397,6 +379,7 @@ const useAnimationManager = () => {
         }
 
         const cardRect = card.getBoundingClientRect();
+
         const screenBottom = window.scrollY + window.innerHeight;
 
         // Card is visible if any part is in viewport
@@ -426,11 +409,55 @@ const useAnimationManager = () => {
 
             const normalizedDistance = Math.min(distance / baseDistance, 2);
             delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
-
-            if (reverse) {
-                delay = maxDelay - delay;
-            }
         }
+        // console.log(card, delay);
+        return delay;
+    }
+
+    function calculateAnimationInDelay(cardId: number): number {
+        let delay = 0;
+
+        const clickedCard = appState.clickedCard;
+
+        if (!clickedCard || !clickedCardPosition.value) {
+            return delay;
+        }
+
+        const cardPos = cardPositions.value.get(cardId)?.backgroundPosition;
+        if (!cardPos) return delay;
+
+        const screenBottom = window.scrollY + window.innerHeight;
+
+        // Card is visible if any part is in viewport
+        if (!(cardPos.bottom < 0 || cardPos.top > screenBottom)) {
+            const cardCenterX = cardPos.left + cardPos.width / 2;
+            const cardCenterY = cardPos.top + cardPos.height / 2;
+
+            const clickedPos = clickedCardPosition.value.backgroundPosition;
+            const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
+            const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
+
+            const distance = Math.sqrt(
+                Math.pow(cardCenterX - clickedCardCenterX, 2) +
+                    Math.pow(cardCenterY - clickedCardCenterY, 2),
+            );
+
+            // Convert distance to delay with responsive calculation
+            const baseDistance =
+                window.innerWidth < 768
+                    ? ANIMATION_CONFIG.DISTANCES.baseDistanceMobile
+                    : ANIMATION_CONFIG.DISTANCES.baseDistanceDesktop;
+            const maxDelay =
+                window.innerWidth < 768
+                    ? ANIMATION_CONFIG.DELAYS.maxCardDelayMobile
+                    : ANIMATION_CONFIG.DELAYS.maxCardDelay;
+
+            const normalizedDistance = Math.min(distance / baseDistance, 2);
+            delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
+
+            delay = maxDelay - delay;
+        }
+        // console.log(card, delay);
         return delay;
     }
 

@@ -69,7 +69,7 @@ const modalImageRef = ref<HTMLImageElement>();
 const modalBackgroundRef = ref<HTMLDivElement>();
 const modalWrapperRef = ref<HTMLElement>();
 
-let { animateOpen } = getAnimationManager();
+let { animateOpen, animateClose } = getAnimationManager();
 let { modalElements, modalVisible } = getAppStateManager();
 
 // Watch for article changes and trigger FLIP animation
@@ -103,9 +103,11 @@ watch(
 async function closeArticle() {
     await nextTick();
 
-    if (!article) return;
+    await animateClose();
 
-    modalVisible.value = false;
+    // if (!article) return;
+
+    // modalVisible.value = false;
 
     // // Gather all DOM elements
     // modalElements = {
