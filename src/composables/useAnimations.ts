@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { ref, computed, readonly, watch, nextTick } from "vue";
-=======
 import { ref, computed } from "vue";
->>>>>>> different_approach
 import { gsap } from "gsap";
 import type {
     CardPosition,
@@ -12,40 +8,7 @@ import type {
 import { ANIMATION_CONFIG } from "../config/animations";
 import { getAppStateManager } from "./useAppState";
 
-<<<<<<< HEAD
-type AnimationState =
-    | "idle"
-    | "card-selected" // New state for when card is clicked but grid still visible
-    | "animating-out"
-    | "cards-animated-out" // New state for when cards are done animating out
-    | "showing-article"
-    | "flip-animating-in"
-    | "flip-animating-out"
-    | "animating-in";
-
-interface CardRegistration {
-    element: HTMLElement;
-    image: HTMLImageElement;
-}
-
-interface ClickedCardInfo {
-    id: number;
-    cardPosition: DOMRect;
-    imagePosition: DOMRect;
-    scrollY: number;
-}
-
-interface ArticleElements {
-    wrapper: HTMLElement;
-    background: HTMLElement;
-    image: HTMLImageElement;
-    content: HTMLElement;
-    closeButton: HTMLElement;
-    title: HTMLElement;
-}
-=======
 let appState = getAppStateManager();
->>>>>>> different_approach
 
 const useAnimationManager = () => {
     const cardPositions = ref<Map<number, CardPosition>>(new Map());
@@ -157,27 +120,6 @@ const useAnimationManager = () => {
             translateY: cardImagePos.top - modalImagePos.top,
         };
 
-<<<<<<< HEAD
-        // First state: card selected, grid still visible
-        currentState.value = "card-selected";
-
-        await nextTick();
-
-        currentState.value = "animating-out";
-
-        // Step 1: Collect all cards except the clicked one
-        const cardsToAnimate = Array.from(registeredCards.value.entries())
-            .filter(([id]) => id !== clickedCardId)
-            .map(([id, registration]) => ({ id, ...registration }));
-
-        // Step 2: Animate all cards out
-        await animateCardsOut(cardsToAnimate);
-
-        // Step 3: Cards are animated out, ready for article
-        currentState.value = "cards-animated-out";
-
-        return clickedCardInfo.value;
-=======
         // Background transforms
         const backgroundTransforms = {
             scaleX: cardBGPos.width / modalBGPos.width,
@@ -187,28 +129,13 @@ const useAnimationManager = () => {
         };
 
         return { imageTransforms, backgroundTransforms };
->>>>>>> different_approach
     }
 
     function setInitialFlipPositions(
         modalElements: ModalElements,
         transforms: FlipTransforms,
     ) {
-<<<<<<< HEAD
-        return new Promise<void>((resolve, reject) => {
-            const timeline = gsap.timeline({
-                onComplete: () => {
-                    activeTimelines.value.delete(timeline);
-                    resolve();
-                },
-                onInterrupt: () => {
-                    activeTimelines.value.delete(timeline);
-                    reject(new Error("Animation interrupted"));
-                },
-            });
-=======
         const { imageTransforms, backgroundTransforms } = transforms;
->>>>>>> different_approach
 
         // Hide content initially
         gsap.set(
@@ -229,40 +156,6 @@ const useAnimationManager = () => {
             scaleY: backgroundTransforms.scaleY,
         });
 
-<<<<<<< HEAD
-                timeline.to(
-                    card.element,
-                    {
-                        opacity: 0,
-                        scale: 0.9,
-                        duration: 0.8,
-                        ease: "power2.out",
-                    },
-                    delay * 0.2,
-                );
-            });
-
-            // If no cards to animate, resolve immediately
-            if (cards.length === 0) {
-                resolve();
-            }
-        });
-    }
-
-    async function startFlipAnimationIn(
-        articleElements: ArticleElements,
-    ): Promise<void> {
-        // Allow starting from both states
-        if (
-            currentState.value !== "cards-animated-out" &&
-            currentState.value !== "showing-article"
-        ) {
-            console.warn(
-                `Cannot start FLIP animation from state: ${currentState.value}`,
-            );
-            return;
-        }
-=======
         // Set initial image position
         gsap.set(modalElements.image, {
             transformOrigin: "top left",
@@ -290,7 +183,6 @@ const useAnimationManager = () => {
             },
             ANIMATION_CONFIG.DELAYS.cardAnimationStart,
         );
->>>>>>> different_approach
 
         // Animate image to final position
         timeline.to(
@@ -306,29 +198,6 @@ const useAnimationManager = () => {
             ANIMATION_CONFIG.DELAYS.modalImageStart,
         );
 
-<<<<<<< HEAD
-        currentState.value = "flip-animating-in";
-
-        await performFlipAnimationIn(articleElements, clickedCardInfo.value);
-
-        // Animation complete - article is now fully visible
-        currentState.value = "showing-article";
-    }
-
-    async function performFlipAnimationIn(
-        articleElements: ArticleElements,
-        clickedInfo: ClickedCardInfo,
-    ): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const {
-                wrapper: articleViewWrapper,
-                background: articleBackground,
-                image: articleImage,
-                content: articleContent,
-                closeButton: articleCloseButton,
-                title: articleTitle,
-            } = articleElements;
-=======
         // Fade in content
         timeline.to(
             [
@@ -348,7 +217,6 @@ const useAnimationManager = () => {
     async function animateOpen() {
         // update the positions for the cards
         await updateCardsPositionState();
->>>>>>> different_approach
 
         // store the elements that make up the modal
         const modalElements = appState.modalElements.value;
@@ -380,57 +248,6 @@ const useAnimationManager = () => {
         animateModalToFinalPosition(timeline, modalElements);
     }
 
-<<<<<<< HEAD
-            const timeline = gsap.timeline({
-                onComplete: () => {
-                    // Clean up wrapper positioning but preserve other transforms until cleanup
-                    gsap.set(articleViewWrapper, {
-                        clearProps: "y,position,zIndex",
-                    });
-                    window.scrollTo(0, 0);
-                    activeTimelines.value.delete(timeline);
-                    resolve();
-                },
-                onInterrupt: () => {
-                    activeTimelines.value.delete(timeline);
-                    reject(new Error("FLIP animation interrupted"));
-                },
-            });
-
-            activeTimelines.value.add(timeline);
-
-            // Animate to final positions (PLAY phase)
-            timeline
-                .to(articleBackground, {
-                    x: 0,
-                    y: 0,
-                    scaleX: 1,
-                    scaleY: 1,
-                    duration: 1.2,
-                    ease: "expo.inOut",
-                })
-                .to(
-                    articleImage,
-                    {
-                        x: 0,
-                        y: 0,
-                        scaleX: 1,
-                        scaleY: 1,
-                        duration: 1.2,
-                        ease: "expo.inOut",
-                    },
-                    "-=0.9",
-                )
-                .to(
-                    [articleContent, articleCloseButton, articleTitle],
-                    {
-                        opacity: 1,
-                        duration: 0.4,
-                        ease: "power2.out",
-                    },
-                    "-=0.3",
-                );
-=======
     async function animateClose() {
         // store the elements that make up the modal
         const modalElements = appState.modalElements.value;
@@ -441,7 +258,6 @@ const useAnimationManager = () => {
 
         gsap.set(modalElements?.wrapper, {
             y: clickedCardPos.scrollY || 0,
->>>>>>> different_approach
         });
 
         window.scrollTo(0, clickedCardPos.scrollY || 0);
@@ -468,25 +284,9 @@ const useAnimationManager = () => {
                     },
                 );
 
-<<<<<<< HEAD
-    async function performFlipAnimationOut(
-        articleElements: ArticleElements,
-        clickedInfo: ClickedCardInfo,
-    ): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const {
-                wrapper: articleViewWrapper,
-                background: articleBackground,
-                image: articleImage,
-                content: articleContent,
-                closeButton: articleCloseButton,
-                title: articleTitle,
-            } = articleElements;
-=======
                 // activeTimelines.value.delete(timeline);
             },
         });
->>>>>>> different_approach
 
         activeTimelines.value.add(timeline);
 
@@ -494,17 +294,8 @@ const useAnimationManager = () => {
             y: clickedCardPos.scrollY,
         });
 
-<<<<<<< HEAD
-            gsap.set(articleViewWrapper, {
-                y: scrollY,
-                position: "relative",
-                zIndex: 1000,
-            });
-            window.scrollTo(0, scrollY);
-=======
         const cardImagePos = clickedCardPos.imagePosition;
         const cardBGPos = clickedCardPos.backgroundPosition;
->>>>>>> different_approach
 
         const modalBGPos = modalElements.background.getBoundingClientRect();
         const modalImagePos = modalElements.image.getBoundingClientRect();
@@ -521,97 +312,6 @@ const useAnimationManager = () => {
         const bgTranslateX = cardBGPos.left - modalBGPos.left;
         const bgTranslateY = cardBGPos.top - modalBGPos.top;
 
-<<<<<<< HEAD
-            // Create reverse animation timeline
-            const timeline = gsap.timeline({
-                onComplete: () => {
-                    // Clear ALL transforms from article elements
-                    gsap.set(
-                        [
-                            articleBackground,
-                            articleImage,
-                            articleViewWrapper,
-                            articleContent,
-                            articleCloseButton,
-                            articleTitle,
-                        ],
-                        {
-                            clearProps: "all",
-                        },
-                    );
-                    activeTimelines.value.delete(timeline);
-                    resolve();
-                },
-                onInterrupt: () => {
-                    activeTimelines.value.delete(timeline);
-                    reject(new Error("FLIP animation out interrupted"));
-                },
-            });
-
-            // Animate back to card position
-            timeline
-                .to([articleContent, articleCloseButton, articleTitle], {
-                    opacity: 0,
-                    duration: 0.2,
-                    ease: "power2.out",
-                })
-                .to(
-                    articleImage,
-                    {
-                        x: translateX,
-                        y: translateY,
-                        scaleX: scaleX,
-                        scaleY: scaleY,
-                        duration: 0.8,
-                        ease: "power3.out",
-                    },
-                    "-=0.2",
-                )
-                .to(
-                    articleBackground,
-                    {
-                        x: bgTranslateX,
-                        y: bgTranslateY,
-                        scaleX: bgScaleX,
-                        scaleY: bgScaleY,
-                        duration: 0.8,
-                        ease: "power3.out",
-                    },
-                    "<",
-                );
-        });
-    }
-
-    // Add this method to your animation manager
-    async function animateCardsIn(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            // Get all cards except the clicked one
-            const cardsToAnimate = Array.from(registeredCards.value.entries())
-                .filter(([id]) => id !== clickedCardInfo.value?.id)
-                .map(([id, registration]) => ({ id, ...registration }));
-
-            if (cardsToAnimate.length === 0) {
-                // Reset state and clear clicked card info
-                currentState.value = "idle";
-                clickedCardInfo.value = null;
-                resolve();
-                return;
-            }
-
-            const timeline = gsap.timeline({
-                onComplete: () => {
-                    activeTimelines.value.delete(timeline);
-                    // Reset to idle state and clear clicked card info
-                    currentState.value = "idle";
-                    clickedCardInfo.value = null;
-                    resolve();
-                },
-                onInterrupt: () => {
-                    activeTimelines.value.delete(timeline);
-                    reject(new Error("Cards in animation interrupted"));
-                },
-            });
-=======
         // Animate back to card position
         timeline
             .to(
@@ -650,24 +350,9 @@ const useAnimationManager = () => {
                 },
                 "<",
             );
->>>>>>> different_approach
 
         appState.cardsVisible.value = true;
 
-<<<<<<< HEAD
-            // Animate cards back in with stagger
-            cardsToAnimate.forEach((card, index) => {
-                // Reset initial state - clear any previous transforms first
-                gsap.set(card.element, {
-                    clearProps: "all",
-                });
-
-                // Reset initial state
-                gsap.set(card.element, {
-                    opacity: 0,
-                    scale: 0.98,
-                });
-=======
         // Add each card to the timeline with its calculated delay
         cardsToAnimate.value.forEach((card) => {
             timeline.to(
@@ -678,7 +363,6 @@ const useAnimationManager = () => {
                     duration: 0.6,
                     ease: "sine.out",
                 },
->>>>>>> different_approach
 
                 calculateAnimationInDelay(card.id) + 0.7,
             );
@@ -730,41 +414,8 @@ const useAnimationManager = () => {
         return delay;
     }
 
-<<<<<<< HEAD
-    // Enhanced cleanup function
-    function cleanup() {
-        // Kill all active timelines
-        activeTimelines.value.forEach((timeline) => {
-            timeline.kill();
-        });
-        activeTimelines.value.clear();
-
-        // Clear all GSAP properties from registered cards
-        registeredCards.value.forEach(({ element }) => {
-            gsap.set(element, { clearProps: "all" });
-        });
-
-        // Reset state
-        currentState.value = "idle";
-        clickedCardInfo.value = null;
-
-        // Restore body overflow
-        document.body.style.overflow = "";
-    }
-
-    // Watch state changes and control scrolling
-    watch(currentState, (newState, oldState) => {
-        console.log(`Animation state: ${oldState} -> ${newState}`);
-
-        const isAnimating =
-            newState === "animating-out" ||
-            newState === "animating-in" ||
-            newState === "flip-animating-in" ||
-            newState === "flip-animating-out";
-=======
     function calculateAnimationInDelay(cardId: number): number {
         let delay = 0;
->>>>>>> different_approach
 
         const clickedCard = appState.clickedCard;
 
@@ -822,43 +473,16 @@ const useAnimationManager = () => {
     //     }
     // });
 
-    // Computed properties with error handling and debugging
-    const isAnimating = computed(() => {
-        try {
-            const state = currentState.value;
-            const result =
-                state === "animating-out" ||
-                state === "animating-in" ||
-                state === "flip-animating-in" ||
-                state === "flip-animating-out";
-            return result;
-        } catch (error) {
-            console.error("Error in isAnimating computed:", error);
-            return false;
-        }
-    });
+    // // Cleanup function
+    // function cleanup() {
+    //     if (currentTimeline.value) {
+    //         currentTimeline.value.kill();
+    //         currentTimeline.value = null;
+    //     }
+    //     currentState.value = "idle";
+    //     clickedCardInfo.value = null;
+    // }
 
-<<<<<<< HEAD
-    const canClickCards = computed(() => {
-        try {
-            const result = currentState.value === "idle";
-            return result;
-        } catch (error) {
-            console.error("Error in canClickCards computed:", error);
-            return false;
-        }
-    });
-
-    const isShowingArticle = computed(() => {
-        try {
-            const result = currentState.value === "showing-article";
-            return result;
-        } catch (error) {
-            console.error("Error in isShowingArticle computed:", error);
-            return false;
-        }
-    });
-=======
     // // Getters
     // const isAnimating = computed(
     //     () =>
@@ -871,27 +495,11 @@ const useAnimationManager = () => {
     // const isShowingArticle = computed(
     //     () => currentState.value === "showing-article",
     // );
->>>>>>> different_approach
 
     return {
         // // State (readonly)
         // clickedCardInfo: readonly(clickedCardInfo),
 
-<<<<<<< HEAD
-        // Computed state helpers
-        isAnimating,
-        canClickCards,
-        isShowingArticle,
-
-        // Core functions
-        registerCard,
-        unregisterCard,
-        animateToArticle,
-        startFlipAnimationIn,
-        startFlipAnimationOut,
-        animateCardsIn,
-        cleanup,
-=======
         animateOpen,
         animateClose,
         // isAnimating,
@@ -909,7 +517,6 @@ const useAnimationManager = () => {
         // cleanup,
         // unregisterCard,
         // animateBackToGrid,
->>>>>>> different_approach
     };
 };
 

@@ -19,14 +19,7 @@ let { articles, selectedArticleId } = getAppStateManager();
 async function handleCardClick(clickedCardId: number) {
     await nextTick();
 
-<<<<<<< HEAD
-    // Animation complete - show article
-    articleStore.selectedArticleId = clickedCardId;
-
-    await animationManager.animateToArticle(clickedCardId);
-=======
     selectedArticleId.value = clickedCardId;
->>>>>>> different_approach
 }
 </script>
 

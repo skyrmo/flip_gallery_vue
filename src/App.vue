@@ -1,17 +1,10 @@
 <template>
     <div class="app-container">
         <main>
-<<<<<<< HEAD
-            <Grid />
-            <Article
-                :article="articleStore.selectedArticle || null"
-                :is-visible="!!articleStore.selectedArticle"
-=======
             <Grid v-show="cardsVisible" />
             <Modal
                 :article="selectedArticle || null"
                 :is-visible="modalVisible"
->>>>>>> different_approach
             />
         </main>
     </div>
@@ -21,29 +14,15 @@
 import Grid from "./components/Grid.vue";
 import Modal from "./components/Modal.vue";
 
-<<<<<<< HEAD
-import { onMounted, onUnmounted } from "vue";
-import { useArticleStore } from "./composables/useArticles";
-import { getAnimationManager } from "./composables/useAnimations";
-
-// load composable
-const articleStore = useArticleStore();
-const animationManager = getAnimationManager();
-=======
 import { onMounted } from "vue";
 import { getAppStateManager } from "./composables/useAppState";
 
 const { fetchArticles, cardsVisible, selectedArticle, modalVisible } =
     getAppStateManager();
->>>>>>> different_approach
 
 // fetch artcles from json file (emulates API call).
 onMounted(async () => {
     await fetchArticles();
-});
-// Cleanup on unmount
-onUnmounted(() => {
-    animationManager.cleanup();
 });
 </script>
 
