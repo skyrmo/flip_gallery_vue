@@ -70,7 +70,7 @@ const modalBackgroundRef = ref<HTMLDivElement>();
 const modalWrapperRef = ref<HTMLElement>();
 
 let { animateOpen, animateClose } = getAnimationManager();
-let { modalElements, modalVisible } = getAppStateManager();
+let { modalElements } = getAppStateManager();
 
 // Watch for article changes and trigger FLIP animation
 watch(
@@ -83,6 +83,19 @@ watch(
         await nextTick();
 
         // Gather all DOM elements
+        if (
+            !article.id ||
+            !modalWrapperRef.value ||
+            !modalBackgroundRef.value ||
+            !modalImageRef.value ||
+            !contentRef.value ||
+            !closeButtonRef.value ||
+            !titleRef.value
+        ) {
+            throw Error("Not able to capture Modal elements");
+            return;
+        }
+
         modalElements.value = {
             id: article.id,
             wrapper: modalWrapperRef.value!,
@@ -92,8 +105,6 @@ watch(
             closeButton: closeButtonRef.value!,
             title: titleRef.value!,
         };
-
-        // modalVisible.value = true;
 
         await animateOpen();
     },
@@ -105,24 +116,7 @@ async function closeArticle() {
 
     await animateClose();
 
-    // if (!article) return;
-
-    // modalVisible.value = false;
-
-    // // Gather all DOM elements
-    // modalElements = {
-    //     id: article.id,
-    //     wrapper: modalWrapperRef.value!,
-    //     background: modalBackgroundRef.value!,
-    //     image: modalImageRef.value!,
-    //     content: contentRef.value!,
-    //     closeButton: closeButtonRef.value!,
-    //     title: titleRef.value!,
-    // };
-
-    // await animateClose(articleElements);
-
-    // modalElements = null;
+    modalElements.value = null;
 }
 </script>
 
@@ -170,7 +164,7 @@ async function closeArticle() {
 
 .image__wrapper {
     grid-area: 1 / 1;
-    max-height: 75vh; /* sets the height of the image  in the hero section */
+    max-height: 80vh; /* sets the height of the image  in the hero section */
     display: flex;
     justify-content: center;
     /*border: 2px solid red;*/

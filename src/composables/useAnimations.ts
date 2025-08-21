@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { gsap } from "gsap";
 import type {
     CardPosition,
@@ -85,20 +85,30 @@ const useAnimationManager = () => {
         return timeline;
     }
 
-    // Animate cards out (fade and scale)
-    function animateCardsOut(timeline: gsap.core.Timeline) {
-        cardsToAnimate.value.forEach((card) => {
-            timeline.to(
-                card.elements.background,
-                {
-                    opacity: 0,
-                    scale: ANIMATION_CONFIG.SCALES.cardFadeOut,
-                    duration: ANIMATION_CONFIG.DURATIONS.cardFadeOut,
-                    ease: ANIMATION_CONFIG.EASING.cardFadeOut,
-                },
-                calculateAnimationOutDelay(card.elements.background),
-            );
+    // Create timeline specifically for closing animation
+    function createCloseTimeline(modalElements: ModalElements) {
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                appState.modalVisible.value = false;
+
+                // Clear all transforms
+                gsap.set(
+                    [
+                        modalElements.background,
+                        modalElements.image,
+                        modalElements.wrapper,
+                    ],
+                    {
+                        clearProps: "all",
+                    },
+                );
+
+                activeTimelines.value.delete(timeline);
+            },
         });
+
+        activeTimelines.value.add(timeline);
+        return timeline;
     }
 
     // Calculate FLIP transform values
@@ -121,6 +131,36 @@ const useAnimationManager = () => {
         };
 
         // Background transforms
+        const backgroundTransforms = {
+            scaleX: cardBGPos.width / modalBGPos.width,
+            scaleY: cardBGPos.height / modalBGPos.height,
+            translateX: cardBGPos.left - modalBGPos.left,
+            translateY: cardBGPos.top - modalBGPos.top,
+        };
+
+        return { imageTransforms, backgroundTransforms };
+    }
+
+    // Calculate transforms for animating from modal back to card
+    function calculateReverseFlipTransforms(
+        clickedCardPos: CardPosition,
+        modalElements: ModalElements,
+    ): FlipTransforms {
+        const cardBGPos = clickedCardPos.backgroundPosition;
+        const cardImagePos = clickedCardPos.imagePosition;
+
+        const modalBGPos = modalElements.background.getBoundingClientRect();
+        const modalImagePos = modalElements.image.getBoundingClientRect();
+
+        // Image transforms (modal to card)
+        const imageTransforms = {
+            scaleX: cardImagePos.width / modalImagePos.width,
+            scaleY: cardImagePos.height / modalImagePos.height,
+            translateX: cardImagePos.left - modalImagePos.left,
+            translateY: cardImagePos.top - modalImagePos.top,
+        };
+
+        // Background transforms (modal to card)
         const backgroundTransforms = {
             scaleX: cardBGPos.width / modalBGPos.width,
             scaleY: cardBGPos.height / modalBGPos.height,
@@ -251,16 +291,9 @@ const useAnimationManager = () => {
     async function animateClose() {
         // store the elements that make up the modal
         const modalElements = appState.modalElements.value;
-
         const clickedCardPos = clickedCardPosition.value;
 
         if (!modalElements || !clickedCardPos) return;
-
-        gsap.set(modalElements?.wrapper, {
-            y: clickedCardPos.scrollY || 0,
-        });
-
-        window.scrollTo(0, clickedCardPos.scrollY || 0);
 
         // Get clicked card info
         const clickedCard = appState.clickedCard.value;
@@ -268,117 +301,154 @@ const useAnimationManager = () => {
             throw new Error(`clicked card not found`);
         }
 
-        const timeline = gsap.timeline({
-            onComplete: () => {
-                appState.modalVisible.value = false;
+        // Restore scroll position to where user was before opening modal
+        restoreScrollPosition(modalElements, clickedCardPos);
 
-                // Clear all transforms
-                gsap.set(
-                    [
-                        modalElements.background,
-                        modalElements.image,
-                        modalElements.wrapper,
-                    ],
-                    {
-                        clearProps: "all",
-                    },
-                );
+        // Create timeline for closing animation
+        const timeline = createCloseTimeline(modalElements);
 
-                // activeTimelines.value.delete(timeline);
-            },
-        });
+        // Calculate reverse FLIP transforms (modal to card)
+        const reverseTransforms = calculateReverseFlipTransforms(
+            clickedCardPos,
+            modalElements,
+        );
 
-        activeTimelines.value.add(timeline);
+        // Animate modal elements back to card position
+        animateModalToCardPosition(timeline, modalElements, reverseTransforms);
 
-        gsap.set(modalElements.wrapper, {
-            y: clickedCardPos.scrollY,
-        });
+        const timeline2 = createCloseTimeline(modalElements);
 
-        const cardImagePos = clickedCardPos.imagePosition;
-        const cardBGPos = clickedCardPos.backgroundPosition;
-
-        const modalBGPos = modalElements.background.getBoundingClientRect();
-        const modalImagePos = modalElements.image.getBoundingClientRect();
-
-        // Calculate scale factors (INVERT phase)
-        const scaleX = cardImagePos.width / modalImagePos.width;
-        const scaleY = cardImagePos.height / modalImagePos.height;
-        const translateX = cardImagePos.left - modalImagePos.left;
-        const translateY = cardImagePos.top - modalImagePos.top;
-
-        // Calculate background scale factors (INVERT phase)
-        const bgScaleX = cardBGPos.width / modalBGPos.width;
-        const bgScaleY = cardBGPos.height / modalBGPos.height;
-        const bgTranslateX = cardBGPos.left - modalBGPos.left;
-        const bgTranslateY = cardBGPos.top - modalBGPos.top;
-
-        // Animate back to card position
-        timeline
-            .to(
-                [
-                    modalElements.content,
-                    modalElements.closeButton,
-                    modalElements.title,
-                ],
-                {
-                    opacity: 0,
-                    duration: 0.4,
-                    ease: "sine.out",
-                },
-            )
-            .to(
-                modalElements.image,
-                {
-                    x: translateX,
-                    y: translateY,
-                    scaleX: scaleX,
-                    scaleY: scaleY,
-                    duration: 0.8,
-                    ease: "expo.inOut",
-                },
-                "-=0.2",
-            )
-            .to(
-                modalElements.background,
-                {
-                    x: bgTranslateX,
-                    y: bgTranslateY,
-                    scaleX: bgScaleX,
-                    scaleY: bgScaleY,
-                    duration: 0.8,
-                    ease: "expo.inOut",
-                },
-                "<",
-            );
-
+        // Make cards visible again
         appState.cardsVisible.value = true;
 
-        // Add each card to the timeline with its calculated delay
+        // Wait for Vue to render the cards
+        await nextTick();
+
+        // IMPORTANT: Set cards to their "out" state immediately after they become visible
+        cardsToAnimate.value.forEach((card) => {
+            gsap.set(card.elements.background, {
+                opacity: 0,
+                scale: ANIMATION_CONFIG.SCALES.cardFadeOut,
+                immediateRender: true, // Force immediate render
+                overwrite: "auto", // Overwrite any existing tweens
+            });
+        });
+
+        // Now animate cards back in
+        animateCardsIn(timeline2);
+    }
+
+    // Helper function to restore scroll position
+    function restoreScrollPosition(
+        modalElements: ModalElements,
+        clickedCardPos: CardPosition,
+    ) {
+        const scrollY = clickedCardPos.scrollY || 0;
+
+        gsap.set(modalElements.wrapper, {
+            y: scrollY,
+        });
+
+        window.scrollTo(0, scrollY);
+    }
+
+    // Animate cards out (fade and scale)
+    function animateCardsOut(timeline: gsap.core.Timeline) {
+        cardsToAnimate.value.forEach((card) => {
+            timeline.to(
+                card.elements.background,
+                {
+                    opacity: 0,
+                    scale: ANIMATION_CONFIG.SCALES.cardFadeOut,
+                    duration: ANIMATION_CONFIG.DURATIONS.cardFadeOut,
+                    ease: ANIMATION_CONFIG.EASING.cardFadeOut,
+                },
+                calculateAnimationDelay(card.id),
+            );
+        });
+    }
+
+    // Animate cards back into view
+    function animateCardsIn(timeline: gsap.core.Timeline) {
         cardsToAnimate.value.forEach((card) => {
             timeline.to(
                 card.elements.background,
                 {
                     opacity: 1,
                     scale: 1,
-                    duration: 0.6,
-                    ease: "sine.out",
+                    duration: ANIMATION_CONFIG.DURATIONS.cardFadeOut, // Reuse same duration
+                    ease: ANIMATION_CONFIG.EASING.cardFadeOut,
                 },
-
-                calculateAnimationInDelay(card.id) + 0.7,
+                calculateAnimationDelay(card.id, true) + 0.7,
             );
         });
     }
 
-    function calculateAnimationOutDelay(card: HTMLElement): number {
+    // Animate modal elements back to card position
+    function animateModalToCardPosition(
+        timeline: gsap.core.Timeline,
+        modalElements: ModalElements,
+        transforms: FlipTransforms,
+    ) {
+        const { imageTransforms, backgroundTransforms } = transforms;
+
+        // Fade out content elements
+        timeline.to(
+            [
+                modalElements.content,
+                modalElements.closeButton,
+                modalElements.title,
+            ],
+            {
+                opacity: 0,
+                duration: ANIMATION_CONFIG.DURATIONS.contentFadeOut,
+                ease: ANIMATION_CONFIG.EASING.contentFade,
+            },
+        );
+
+        // Animate image back to card position
+        timeline.to(
+            modalElements.image,
+            {
+                x: imageTransforms.translateX,
+                y: imageTransforms.translateY,
+                scaleX: imageTransforms.scaleX,
+                scaleY: imageTransforms.scaleY,
+                duration: ANIMATION_CONFIG.DURATIONS.closeAnimation,
+                ease: ANIMATION_CONFIG.EASING.closeTransition,
+            },
+            "-=0.2", // Start slightly before content fade completes
+        );
+
+        // Animate background back to card position
+        timeline.to(
+            modalElements.background,
+            {
+                x: backgroundTransforms.translateX,
+                y: backgroundTransforms.translateY,
+                scaleX: backgroundTransforms.scaleX,
+                scaleY: backgroundTransforms.scaleY,
+                duration: ANIMATION_CONFIG.DURATIONS.closeAnimation,
+                ease: ANIMATION_CONFIG.EASING.closeTransition,
+            },
+            "<", // Start at the same time as image animation
+        );
+    }
+
+    function calculateAnimationDelay(
+        cardId: number,
+        reverse: boolean = false,
+    ): number {
         let delay = 0;
 
         const clickedCard = appState.clickedCard;
-
         if (!clickedCard || !clickedCardPosition.value) {
             return delay;
         }
 
-        const cardRect = card.getBoundingClientRect();
+        // Get card position from stored positions
+        const cardRect = cardPositions.value.get(cardId)?.backgroundPosition;
+        if (!cardRect) return delay;
 
         const screenBottom = window.scrollY + window.innerHeight;
 
@@ -397,52 +467,6 @@ const useAnimationManager = () => {
             );
 
             // Convert distance to delay with responsive calculation
-            // Convert distance to delay with responsive calculation
-            const baseDistance =
-                window.innerWidth < 768
-                    ? ANIMATION_CONFIG.DISTANCES.baseDistanceMobile
-                    : ANIMATION_CONFIG.DISTANCES.baseDistanceDesktop;
-            const maxDelay =
-                window.innerWidth < 768
-                    ? ANIMATION_CONFIG.DELAYS.maxCardDelayMobile
-                    : ANIMATION_CONFIG.DELAYS.maxCardDelay;
-
-            const normalizedDistance = Math.min(distance / baseDistance, 2);
-            delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
-        }
-        // console.log(card, delay);
-        return delay;
-    }
-
-    function calculateAnimationInDelay(cardId: number): number {
-        let delay = 0;
-
-        const clickedCard = appState.clickedCard;
-
-        if (!clickedCard || !clickedCardPosition.value) {
-            return delay;
-        }
-
-        const cardPos = cardPositions.value.get(cardId)?.backgroundPosition;
-        if (!cardPos) return delay;
-
-        const screenBottom = window.scrollY + window.innerHeight;
-
-        // Card is visible if any part is in viewport
-        if (!(cardPos.bottom < 0 || cardPos.top > screenBottom)) {
-            const cardCenterX = cardPos.left + cardPos.width / 2;
-            const cardCenterY = cardPos.top + cardPos.height / 2;
-
-            const clickedPos = clickedCardPosition.value.backgroundPosition;
-            const clickedCardCenterX = clickedPos.left + clickedPos.width / 2;
-            const clickedCardCenterY = clickedPos.top + clickedPos.height / 2;
-
-            const distance = Math.sqrt(
-                Math.pow(cardCenterX - clickedCardCenterX, 2) +
-                    Math.pow(cardCenterY - clickedCardCenterY, 2),
-            );
-
-            // Convert distance to delay with responsive calculation
             const baseDistance =
                 window.innerWidth < 768
                     ? ANIMATION_CONFIG.DISTANCES.baseDistanceMobile
@@ -455,46 +479,14 @@ const useAnimationManager = () => {
             const normalizedDistance = Math.min(distance / baseDistance, 2);
             delay = Math.pow(normalizedDistance, 1.2) * maxDelay;
 
-            delay = maxDelay - delay;
+            // For 'in' animations, invert the delay so closer cards animate later
+            if (reverse) {
+                delay = maxDelay - delay;
+            }
         }
-        // console.log(card, delay);
+
         return delay;
     }
-
-    // // Watch state changes and control scrolling
-    // watch(currentState, (newState) => {
-    //     const isAnimating =
-    //         newState === "animating-out" || newState === "animating-in";
-
-    //     if (isAnimating) {
-    //         document.body.style.overflow = "hidden";
-    //     } else {
-    //         document.body.style.overflow = "";
-    //     }
-    // });
-
-    // // Cleanup function
-    // function cleanup() {
-    //     if (currentTimeline.value) {
-    //         currentTimeline.value.kill();
-    //         currentTimeline.value = null;
-    //     }
-    //     currentState.value = "idle";
-    //     clickedCardInfo.value = null;
-    // }
-
-    // // Getters
-    // const isAnimating = computed(
-    //     () =>
-    //         currentState.value === "animating-out" ||
-    //         currentState.value === "animating-in",
-    // );
-
-    // const canClickCards = computed(() => currentState.value === "idle");
-
-    // const isShowingArticle = computed(
-    //     () => currentState.value === "showing-article",
-    // );
 
     return {
         // // State (readonly)

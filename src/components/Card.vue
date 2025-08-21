@@ -56,19 +56,15 @@ onUnmounted(() => {
 
 <style scoped>
 .article-card {
-    /*border-radius: 8px;*/
     cursor: pointer;
     background: #fee;
-    padding: 1rem;
-    /* GPU optimization hints */
+    padding: 2.5rem;
+
     will-change: transform, opacity;
     backface-visibility: hidden;
-    transform: translateZ(0); /* Forces GPU layer */
-    transition: transform 0.2s ease; /* Smooth hover states */
 }
-.article-card:hover {
-    transform: translateZ(0) scale(1.02); /* Maintain GPU layer */
-}
+/*.article-card:hover {
+}*/
 
 .article-card.is-selected {
     background-color: blue;
