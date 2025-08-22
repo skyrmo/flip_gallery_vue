@@ -167,7 +167,6 @@ async function closeArticle() {
     max-height: 80vh; /* sets the height of the image  in the hero section */
     display: flex;
     justify-content: center;
-    /*border: 2px solid red;*/
 }
 
 .image {
@@ -203,20 +202,20 @@ async function closeArticle() {
     line-height: 1.6;
     max-width: 93ch;
     color: var(--color-text);
-    column-width: 45ch;
+    column-width: 40ch;
     column-gap: 1.6rem;
     column-count: 2;
 }
 
-.article-paragraph {
+p {
     margin-bottom: 1.5rem;
     text-align: justify;
     break-inside: avoid;
     page-break-inside: avoid;
 }
 
-.article-paragraph:last-child {
-    margin-bottom: 0;
+p:last-child {
+    margin-bottom: 0rem;
 }
 
 .button__close {
@@ -224,7 +223,8 @@ async function closeArticle() {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--color-text);
+    opacity: 0.5;
     color: white;
     border: none;
     font-size: 1.5rem;
@@ -237,6 +237,6 @@ async function closeArticle() {
 }
 
 .button__close:hover {
-    background: rgba(0, 0, 0, 0.7);
+    /*background: rgba(0, 0, 0, 0.7);*/
 }
 </style>

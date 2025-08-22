@@ -379,7 +379,7 @@ const useAnimationManager = () => {
                     duration: ANIMATION_CONFIG.DURATIONS.cardFadeOut, // Reuse same duration
                     ease: ANIMATION_CONFIG.EASING.cardFadeOut,
                 },
-                calculateAnimationDelay(card.id, true) + 0.7,
+                calculateAnimationDelay(card.id, true) + 0.15,
             );
         });
     }
@@ -417,7 +417,7 @@ const useAnimationManager = () => {
                 duration: ANIMATION_CONFIG.DURATIONS.closeAnimation,
                 ease: ANIMATION_CONFIG.EASING.closeTransition,
             },
-            "-=0.2", // Start slightly before content fade completes
+            0, // Start slightly before content fade completes
         );
 
         // Animate background back to card position
@@ -431,7 +431,7 @@ const useAnimationManager = () => {
                 duration: ANIMATION_CONFIG.DURATIONS.closeAnimation,
                 ease: ANIMATION_CONFIG.EASING.closeTransition,
             },
-            "<", // Start at the same time as image animation
+            0.15, // Start at the same time as image animation
         );
     }
 

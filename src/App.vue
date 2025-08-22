@@ -33,6 +33,7 @@ onMounted(async () => {
     align-items: stretch;
     height: 100vh;
     width: 100vw;
+    padding: 5rem;
 }
 
 header {

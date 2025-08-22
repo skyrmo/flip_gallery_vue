@@ -2,6 +2,7 @@
     {
         "id": 1,
         "title": "Exploring Vue 3 Features",
+        "shortTitle": "Vue 3",
         "subtitle": "A Deep Dive into Modern Web Development",
         "content": [
             "Vue 3 introduces a revolutionary approach to building modern web applications with its Composition API, providing developers with more flexibility and better code organization. The new reactive system is built from the ground up with TypeScript in mind, offering superior performance and type safety.",
@@ -28,6 +29,7 @@
     {
         "id": 2,
         "title": "Mastering CSS Grid Layouts",
+        "shortTitle": "CSS Grid",
         "subtitle": "A Comprehensive Guide to Modern Web Design",
         "content": [
             "CSS Grid Layout is a two-dimensional layout system that revolutionizes how we approach web design. Unlike Flexbox, which is primarily one-dimensional, Grid allows you to work with both rows and columns simultaneously, giving you unprecedented control over your layouts.",
@@ -55,6 +57,7 @@
     {
         "id": 3,
         "title": "Vue vs React",
+        "shortTitle": "Vue v React",
         "subtitle": "Choosing the Right Frontend Framework for Your Project",
         "content": [
             "When comparing Vue and React, it's essential to understand that both are exceptional frameworks with different philosophies. Vue emphasizes simplicity and progressive integration, while React focuses on functional programming principles and a robust ecosystem.",
@@ -83,6 +86,7 @@
     {
         "id": 4,
         "title": "CSS Subgrid",
+        "shortTitle": "Subgrid",
         "subtitle": "The Missing Piece in Web Layout Design",
         "content": [
             "CSS Subgrid represents a significant advancement in the CSS Grid specification, addressing a critical limitation in creating complex nested grid layouts. With subgrid, child grid containers can inherit the grid definition of their parents, enabling perfect alignment across nested grids.",
@@ -109,6 +113,7 @@
     {
         "id": 5,
         "title": "TypeScript",
+        "shortTitle": "TypeScript",
         "subtitle": "Transforming JavaScript Development with Static Typing",
         "content": [
             "TypeScript represents a revolutionary approach to JavaScript development, bridging the gap between dynamic scripting and robust, enterprise-grade programming. By introducing optional static typing, TypeScript provides developers with powerful tools to create more predictable, maintainable, and scalable applications.",
@@ -134,6 +139,7 @@
     {
         "id": 6,
         "title": "The Evolution of JavaScript",
+        "shortTitle": "Evolution",
         "subtitle": "From Browser Scripting to Fullstack Development",
         "content": [
             "JavaScript's journey from a simple browser scripting language to a fullstack development platform represents one of the most remarkable evolutions in programming history. Created in just 10 days by Brendan Eich in 1995, JavaScript was initially designed for basic client-side interactions, but has since transformed the entire web development landscape.",
@@ -159,6 +165,7 @@
     {
         "id": 7,
         "title": "Frontend Performance Optimization",
+        "shortTitle": "Optimization",
         "subtitle": "Strategies for Faster Web Applications",
         "content": [
             "Frontend performance optimization remains a critical aspect of web development, directly impacting user experience, conversion rates, and even search engine rankings. As web applications grow more complex, implementing effective performance strategies becomes increasingly important for delivering fast, responsive user experiences across all devices.",
@@ -184,6 +191,7 @@
     {
         "id": 8,
         "title": "Edge Computing and the Future of Web Architecture",
+        "shortTitle": "Edge",
         "subtitle": "Bringing Computation Closer to Users",
         "content": [
             "Edge computing represents a paradigm shift in web architecture, bringing computation and data storage closer to the point of need. Unlike traditional cloud models that centralize processing in distant data centers, edge computing distributes these resources to the network edge, dramatically reducing latency and improving user experience.",
@@ -211,6 +219,7 @@
     {
         "id": 9,
         "title": "The Future of Web Development",
+        "shortTitle": "Future",
         "subtitle": "Emerging Technologies and Trends Shaping Tomorrow's Internet",
         "content": [
             "The landscape of web development is evolving at an unprecedented pace, driven by emerging technologies like WebAssembly, Progressive Web Apps, and advanced JavaScript frameworks. These innovations are fundamentally changing how we approach building digital experiences.",
@@ -238,6 +247,7 @@
     {
         "id": 10,
         "title": "Microservices Architecture Patterns",
+        "shortTitle": "Microservices",
         "subtitle": "Building Scalable and Maintainable Distributed Systems",
         "content": [
             "Microservices architecture has emerged as a dominant pattern for building large-scale, distributed applications. By decomposing monolithic applications into smaller, independently deployable services, organizations can achieve greater flexibility, scalability, and team autonomy.",
@@ -265,6 +275,7 @@
     {
         "id": 11,
         "title": "Modern JavaScript ES2023 Features",
+        "shortTitle": "ES2023",
         "subtitle": "Exploring the Latest Language Enhancements and Best Practices",
         "content": [
             "JavaScript continues to evolve rapidly with ES2023 introducing powerful new features that enhance developer productivity and code expressiveness. These additions build upon previous versions while introducing innovative capabilities for modern application development.",
@@ -292,6 +303,7 @@
     {
         "id": 12,
         "title": "Database Design Fundamentals",
+        "shortTitle": "DB Fundamentals",
         "subtitle": "Creating Efficient and Scalable Data Architectures",
         "content": [
             "Effective database design forms the backbone of any successful application. Understanding normalization principles, indexing strategies, and relationship modeling is crucial for creating systems that perform well and scale gracefully as data volumes grow.",
@@ -319,6 +331,7 @@
     {
         "id": 13,
         "title": "Cybersecurity Best Practices",
+        "shortTitle": "Security",
         "subtitle": "Protecting Applications and Data in the Digital Age",
         "content": [
             "Cybersecurity has become a critical concern for organizations of all sizes as digital threats continue to evolve in sophistication and frequency. Implementing comprehensive security measures requires a multi-layered approach that addresses both technical and human factors.",
@@ -346,6 +359,7 @@
     {
         "id": 14,
         "title": "Machine Learning in Web Development",
+        "shortTitle": "ML",
         "subtitle": "Integrating AI Capabilities into Modern Applications",
         "content": [
             "Machine learning integration in web development is transforming how applications understand and respond to user behavior. From recommendation systems to natural language processing, AI capabilities are becoming standard features in modern web applications.",
@@ -373,6 +387,7 @@
     {
         "id": 15,
         "title": "Cloud-Native Development",
+        "shortTitle": "Cloud-Native",
         "subtitle": "Building Applications for Modern Infrastructure",
         "content": [
             "Cloud-native development represents a fundamental shift in how applications are designed, built, and deployed. This approach leverages cloud computing capabilities to create scalable, resilient, and efficient applications that can take full advantage of modern infrastructure.",
@@ -400,6 +415,7 @@
     {
         "id": 16,
         "title": "DevOps Culture and Practices",
+        "shortTitle": "DevOps",
         "subtitle": "Bridging Development and Operations for Better Software Delivery",
         "content": [
             "DevOps culture represents a fundamental shift in how organizations approach software development and operations. By breaking down silos between development and operations teams, organizations can achieve faster, more reliable software delivery.",
